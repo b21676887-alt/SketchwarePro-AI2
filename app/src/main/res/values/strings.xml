@@ -3282,4 +3282,5 @@ Do you want to continue?</string>
     <string name="code_editor_menu_find_replace">Find &amp; Replace</string>
     <string name="code_editor_menu_word_wrap">Word wrap</string>
     <string name="error_circular_dependency">Circular dependency found in \"%s\"\nPlease resolve the issue before saving</string>
+    <string name="toast_no_changes">No changes to save</string>
 </resources>
