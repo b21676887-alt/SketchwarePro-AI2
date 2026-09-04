@@ -3272,4 +3272,9 @@ Do you want to continue?</string>
     <string name="store_size_format">Size: %s</string>
     <string name="store_verified">Verified</string>
     <string name="error_downloading_unavailable">Downloading projects is unavailable right now!</string>
+    <string name="view_code_editor_title">XML Editor</string>
+    <string name="code_editor_menu_font_size">Font size</string>
+    <string name="code_editor_menu_line_numbers">Line numbers</string>
+    <string name="code_editor_menu_sticky_scroll">Sticky scroll</string>
+    <string name="projects_sort_title">Sort options</string>
 </resources>
