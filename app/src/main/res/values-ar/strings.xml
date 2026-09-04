@@ -2367,6 +2367,11 @@
     <string name="code_editor_menu_line_numbers">أرقام الأسطر</string>
     <string name="code_editor_menu_sticky_scroll">التمرير اللاصق</string>
     <string name="projects_sort_title">خيارات الفرز</string>
+    <string name="code_editor_select_font_size">حدد حجم الخط</string>
+    <string name="code_editor_select_theme">اختر المظهر</string>
+    <string name="code_editor_menu_find_replace">البحث والاستبدال</string>
+    <string name="code_editor_menu_word_wrap">التفاف النص</string>
+    <string name="error_circular_dependency">Circular dependency found in \"%s\"\nPlease resolve the issue before saving</string>
 </resources>
 
 
