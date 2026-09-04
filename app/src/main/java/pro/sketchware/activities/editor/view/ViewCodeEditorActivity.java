@@ -115,9 +115,10 @@ public class ViewCodeEditorActivity extends BaseAppCompatActivity {
         content = getIntent().getStringExtra("content");
         editor = binding.editor;
         editor.setTypefaceText(EditorUtils.getTypeface(this));
-        editor.setTextSize(14);
         editor.setText(content);
         EditorUtils.loadXmlConfig(editor);
+        editorPrefs = new CodeEditorPreferences(this, "vce");
+        editorPrefs.applyToEditor(editor, false);
         if (projectFile.fileType == ProjectFileBean.PROJECT_FILE_TYPE_ACTIVITY
                 && projectLibrary.isEnabled()) {
             setNote("Use AppCompat Manager to modify attributes for CoordinatorLayout, Toolbar, and other appcompat layout/widget.");
@@ -184,6 +185,7 @@ public class ViewCodeEditorActivity extends BaseAppCompatActivity {
             }
             case 4 -> {
                 EditorUtils.loadXmlConfig(binding.editor);
+                editorPrefs.applyToEditor(editor, false);
                 return true;
             }
             case 5 -> {
@@ -286,6 +288,12 @@ public class ViewCodeEditorActivity extends BaseAppCompatActivity {
 
     private boolean isContentModified() {
         return !content.equals(editor.getText().toString());
+    }
+    
+    @Override
+    public void onStop() {
+        super.onStop();
+        editorPrefs.saveTextSizeFromEditor(editor, getResources().getDisplayMetrics().scaledDensity);
     }
 
     private void exitWithEditedContent() {
