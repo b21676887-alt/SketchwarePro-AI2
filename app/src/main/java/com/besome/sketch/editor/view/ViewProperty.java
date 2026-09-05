@@ -1,6 +1,7 @@
 package com.besome.sketch.editor.view;
 
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.text.InputType;
@@ -16,6 +17,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.FrameLayout;
+
+import androidx.fragment.app.FragmentActivity;
 
 import com.besome.sketch.beans.ProjectFileBean;
 import com.besome.sketch.beans.ViewBean;
@@ -42,8 +46,8 @@ import a.a.a.mB;
 import a.a.a.wB;
 import mod.hey.studios.project.ProjectSettings;
 import mod.hey.studios.util.Helper;
+import mod.hilal.saif.activities.tools.ConfigActivity;
 import pro.sketchware.R;
-import pro.sketchware.utility.TranslationFunction;
 
 public class ViewProperty extends LinearLayout implements Kw {
 
@@ -69,6 +73,7 @@ public class ViewProperty extends LinearLayout implements Kw {
     private ObjectAnimator showAllShower;
     private ObjectAnimator showAllHider;
     private boolean showAllVisible = true;
+    private String currentlySelectedViewId = null;
 
     public ViewProperty(Context context) {
         super(context);
@@ -236,6 +241,7 @@ public class ViewProperty extends LinearLayout implements Kw {
                 .show();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void initialize(Context context) {
         this.context = context;
         wB.a(context, this, R.layout.view_property);
@@ -287,6 +293,7 @@ public class ViewProperty extends LinearLayout implements Kw {
         });
         imgDelete = findViewById(R.id.img_delete);
         imgDelete.setOnClickListener(view -> showDeleteViewBeanWidget());
+        
         spnWidget = findViewById(R.id.spn_widget);
         idsAdapter = new ViewIdsAdapter(context, projectActivityViews);
         spnWidget.setAdapter(idsAdapter);
@@ -302,6 +309,41 @@ public class ViewProperty extends LinearLayout implements Kw {
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
+
+        FrameLayout spinnerContainer = findViewById(R.id.spn_widget_container);
+        if (spinnerContainer != null) {
+    View overlay = new View(context);
+    overlay.setLayoutParams(new FrameLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.MATCH_PARENT
+    ));
+    overlay.setBackgroundColor(0x00000000);
+
+    spinnerContainer.addView(overlay);
+
+    overlay.setOnClickListener(v -> {
+        if (ConfigActivity.isSettingEnabled(ConfigActivity.SETTING_TREE_VIEW)) {
+            if (context instanceof FragmentActivity) {
+
+                ViewTreeDrawerDialog drawer = new ViewTreeDrawerDialog(
+                    projectActivityViews,
+                    viewId -> {
+                        a(viewId);
+                    },
+                    currentlySelectedViewId
+                );
+
+                drawer.show(
+                    ((FragmentActivity) context).getSupportFragmentManager(),
+                    "ViewTreeDrawer"
+                );
+            }
+        } else {
+            spnWidget.performClick();
+        }
+    });
+}
+
         initializeGroups();
         initializeSeeAllAnimations();
         viewPropertyItems = new ViewPropertyItems(getContext());
@@ -310,6 +352,7 @@ public class ViewProperty extends LinearLayout implements Kw {
     }
 
     private void selectView(ViewBean viewBean) {
+    currentlySelectedViewId = viewBean.id;
         if (propertyTargetChangeListener != null) {
             propertyTargetChangeListener.a(viewBean.id);
         }
