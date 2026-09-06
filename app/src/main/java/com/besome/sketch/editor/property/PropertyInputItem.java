@@ -2,6 +2,7 @@ package com.besome.sketch.editor.property;
 
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.text.Editable;
