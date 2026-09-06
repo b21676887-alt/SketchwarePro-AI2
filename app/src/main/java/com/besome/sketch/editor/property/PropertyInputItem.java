@@ -1199,6 +1199,10 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
         binding.tiInput.setHint(
                 String.format(Helper.getResString(R.string.property_enter_value), attr));
 
+        if (getContext() instanceof Activity) {
+            AttributeInputHelper.wireFixed((Activity) getContext(), sc_id, attr, binding.tiInput, input);
+        }
+
         builder.setView(binding.getRoot());
         EditText finalInput = input;
         builder.setPositiveButton(
