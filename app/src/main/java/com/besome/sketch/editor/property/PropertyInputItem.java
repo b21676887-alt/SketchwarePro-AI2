@@ -68,7 +68,6 @@ import pro.sketchware.databinding.PropertyInputItemBinding;
 import pro.sketchware.databinding.PropertyPopupHybridBinding;
 import pro.sketchware.databinding.PropertyPopupInputTextBinding;
 import pro.sketchware.databinding.PropertyPopupParentAttrBinding;
-import pro.sketchware.databinding.StyleEditorAddAttrBinding;
 import pro.sketchware.lib.base.BaseTextWatcher;
 import pro.sketchware.lib.highlighter.SyntaxScheme;
 import pro.sketchware.lib.validator.PropertyNameValidator;
@@ -135,15 +134,20 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
     public void setKey(String key) {
         this.key = key;
         int identifier = getResources().getIdentifier(key, "string", getContext().getPackageName());
+        
         if (identifier > 0) {
             tvName.setText(Helper.getResString(identifier));
-            if (propertyMenuItem.getVisibility() == VISIBLE) {
-                setIcon(findViewById(R.id.img_icon));
-                ((TextView) findViewById(R.id.tv_title)).setText(Helper.getResString(identifier));
-                return;
-            }
-            setIcon(imgLeftIcon);
+        } else {
+            String fallback = key.replace("property_", "");
+            tvName.setText(fallback.substring(0, 1).toUpperCase() + fallback.substring(1));
         }
+        
+        if (propertyMenuItem.getVisibility() == VISIBLE) {
+            setIcon(findViewById(R.id.img_icon));
+            ((TextView) findViewById(R.id.tv_title)).setText(tvName.getText());
+            return;
+        }
+        setIcon(imgLeftIcon);
     }
 
     public String getValue() {
@@ -223,7 +227,7 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                         Helper.getText(tvName),
                         Float.parseFloat(value.isEmpty() ? "1" : value),
                         0f, 50f, 1f, true);
-                        case "property_elevation" -> showHybridSliderDialog(
+                case "property_elevation" -> showHybridSliderDialog(
                         Helper.getText(tvName),
                         Float.parseFloat(value.isEmpty() ? "0" : value.replaceAll("[^0-9.]", "")),
                         0f, 50f, 1f, true);
@@ -233,7 +237,7 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
             }
         }
     }
-    
+
     private void showVisibilityDialog() {
         MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(getContext());
         dialog.setTitle(Helper.getText(tvName));
@@ -390,7 +394,15 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
             v.dismiss();
         });
 
-        dialog.setNegativeButton(Helper.getResString(R.string.common_word_reset), null);
+        // Negative button explicitly clears the XML attribute entirely
+        dialog.setNegativeButton(Helper.getResString(R.string.common_word_reset), (v, which) -> {
+            setValue("");
+            if (valueChangeListener != null) {
+                valueChangeListener.a(key, "");
+            }
+            v.dismiss();
+        });
+        
         dialog.setNeutralButton("Custom", null);
 
         AlertDialog alertDialog = dialog.create();
@@ -418,7 +430,6 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
             sliderAnimator.start();
 
             Button customButton = alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-            Button resetButton = alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE);
 
             customButton.setOnClickListener(v -> {
                 if (binding.sliderSection.getVisibility() == View.VISIBLE) {
@@ -431,27 +442,6 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                     binding.tiInput.setVisibility(View.GONE);
                     customButton.setText("Custom");
                 }
-            });
-
-            resetButton.setOnClickListener(v -> {
-                float defaultValue = getDefaultValue(key);
-
-                ValueAnimator resetAnimator = ValueAnimator.ofFloat(binding.slider.getValue(), defaultValue);
-                resetAnimator.setDuration(400);
-                resetAnimator.setInterpolator(new DecelerateInterpolator());
-
-                resetAnimator.addUpdateListener(animation -> {
-                    float animatedValue = (float) animation.getAnimatedValue();
-                    float validAnimatedValue = Math.round(animatedValue / stepSize) * stepSize;
-                    validAnimatedValue = Math.max(minValue, Math.min(maxValue, validAnimatedValue));
-                    binding.slider.setValue(validAnimatedValue);
-                    updateValueDisplay(binding.tvCurrentValue, validAnimatedValue, isInteger);
-                    binding.edInput.setText(isInteger ? String.valueOf((int) validAnimatedValue) :
-                            String.format(Locale.US, "%.1f", validAnimatedValue));
-                });
-
-                resetAnimator.start();
-                binding.tiInput.setError(null);
             });
         });
 
@@ -507,10 +497,6 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
         imgLeftIcon = findViewById(R.id.img_left_icon);
         propertyItem = findViewById(R.id.property_item);
         propertyMenuItem = findViewById(R.id.property_menu_item);
-//        if (z) {
-//            propertyMenuItem.setSoundEffectsEnabled(true);
-//            propertyMenuItem.setOnClickListener(this);
-//        }
     }
 
     private void showViewIdDialog() {
@@ -689,7 +675,7 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
         PropertyPopupInputTextBinding binding = PropertyPopupInputTextBinding.inflate(LayoutInflater.from(getContext()));
         binding.tiInput.setHint(String.format(Helper.getResString(R.string.property_enter_value), Helper.getText(tvName)));
 
-        binding.edInput.setInputType(minValue < 0
+        binding.edInput.setInputType((minValue < 0)
                 ? InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL
                 : InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
@@ -739,7 +725,9 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
         List<String> prioritizedSuggestions = new ArrayList<>();
 
         switch (typeView) {
-            case "0":  // LinearLayout
+            case "0":
+            case "1":
+            case "50":
                 prioritizedSuggestions.addAll(Arrays.asList(
                         "LinearLayout", "FrameLayout", "RelativeLayout",
                         "androidx.constraintlayout.widget.ConstraintLayout",
@@ -749,25 +737,25 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                 ));
                 break;
 
-            case "2":  // HorizontalScrollView
-            case "12": // VerticalScrollView
+            case "2":
+            case "12":
                 prioritizedSuggestions.addAll(Arrays.asList(
                         "HorizontalScrollView", "VerticalScrollView", "ScrollView",
                         "androidx.core.widget.NestedScrollView"
                 ));
                 break;
 
-            case "9":  // ListView
-            case "25": // GridView
-            case "48": // RecyclerView
+            case "9":
+            case "25":
+            case "48":
                 prioritizedSuggestions.addAll(Arrays.asList(
                         "ListView", "GridView", "androidx.recyclerview.widget.RecyclerView",
                         "ExpandableListView", "androidx.viewpager2.widget.ViewPager2"
                 ));
                 break;
 
-            case "3":  // Button
-            case "41": // MaterialButton
+            case "3":
+            case "41":
                 prioritizedSuggestions.addAll(Arrays.asList(
                         "Button", "com.google.android.material.button.MaterialButton",
                         "ImageButton", "ToggleButton", "CompoundButton",
@@ -775,9 +763,9 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                 ));
                 break;
 
-            case "4":  // TextView
-            case "5":  // EditText
-            case "38": // TextInputLayout
+            case "4":
+            case "5":
+            case "38":
                 prioritizedSuggestions.addAll(Arrays.asList(
                         "TextView", "EditText",
                         "com.google.android.material.textfield.TextInputLayout",
@@ -788,8 +776,8 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                 ));
                 break;
 
-            case "21": // VideoView
-            case "7":  // WebView
+            case "21":
+            case "7":
                 prioritizedSuggestions.addAll(Arrays.asList(
                         "VideoView", "android.webkit.WebView",
                         "androidx.media.widget.VideoView",
@@ -797,8 +785,8 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                 ));
                 break;
 
-            case "8":  // ProgressBar
-            case "14": // SeekBar
+            case "8":
+            case "14":
                 prioritizedSuggestions.addAll(Arrays.asList(
                         "ProgressBar", "SeekBar",
                         "HorizontalScrollBar", "VerticalSeekBar",
@@ -806,8 +794,8 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                 ));
                 break;
 
-            case "11": // CheckBox
-            case "19": // RadioButton
+            case "11":
+            case "19":
                 prioritizedSuggestions.addAll(Arrays.asList(
                         "CheckBox", "RadioButton",
                         "androidx.appcompat.widget.AppCompatCheckBox",
@@ -815,8 +803,8 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                 ));
                 break;
 
-            case "30": // TabLayout
-            case "31": // ViewPager
+            case "30":
+            case "31":
                 prioritizedSuggestions.addAll(Arrays.asList(
                         "com.google.android.material.tabs.TabLayout",
                         "androidx.viewpager.widget.ViewPager",
@@ -827,18 +815,18 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                 ));
                 break;
 
-            case "32": // BottomNavigationView
+            case "32":
                 prioritizedSuggestions.add("com.google.android.material.bottomnavigation.BottomNavigationView");
                 break;
 
-            case "36": // CardView
+            case "36":
                 prioritizedSuggestions.addAll(Arrays.asList(
                         "androidx.cardview.widget.CardView",
                         "com.google.android.material.card.MaterialCardView"
                 ));
                 break;
 
-            case "39": // SwipeRefreshLayout
+            case "39":
                 prioritizedSuggestions.addAll(Arrays.asList(
                         "androidx.swiperefreshlayout.widget.SwipeRefreshLayout",
                         "com.google.android.material.progressindicator.CircularProgressIndicator",
@@ -861,115 +849,66 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
         return Arrays.asList(getResources().getStringArray(R.array.property_convert_options));
     }
 
-    /**
-     * Populates additional attributes for specific view types.
-     * <p>
-     * You can add more attributes directly to this list instead of introducing
-     * another variable in the ViewBean class. Use the ViewBean#type field
-     * or getClassInfo methods to identify the type of view and add attributes accordingly.
-     * <p>
-     * Examples:
-     * <p>
-     * // Using ViewBean#type
-     * if (bean.type == ViewBean.VIEW_TYPE_WIDGET_TEXTVIEW) {
-     * attrs.add("android:text");
-     * }
-     * <p>
-     * // Using getClassInfo
-     * if (bean.getClassInfo().a("TextView")) {
-     * attrs.add("android:text");
-     * }
-     * if (bean.getClassInfo().b("LinearLayout")) {
-     * attrs.add("android:orientation");
-     * }
-     * <p>
-     * Notes for getClassInfo:
-     * - a(String): Similar to instanceof for view class names.
-     * - b(String): Represents the actual type of the view, I think?.
-     * Idk if there's a difference between ViewBean#type and this.
-     *
-     * @return A list of additional attributes for the specified view type.
-     */
     private List<String> populateAttributes() {
         List<String> attrs = new ArrayList<>();
-        AttributeShortcutsManager shortcutsManager = new AttributeShortcutsManager();
-
-        // Add saved shortcuts
-        for (AttributeShortcutsManager.ShortcutItem item : shortcutsManager.getShortcuts()) {
-            attrs.add(item.name);
-        }
-
+        
         if (bean != null) {
+            var simpleName = getSimpleName(bean);
             var classInfo = bean.getClassInfo();
-
-            // View attributes (common to all)
-            attrs.addAll(Arrays.asList(
-                    "android:background", "android:backgroundTint", "android:alpha", "android:visibility",
-                    "android:padding", "android:layout_margin", "android:elevation", "android:rotation",
-                    "android:scaleX", "android:scaleY", "android:translationX", "android:translationY"
-            ));
-
-            if (classInfo.a("TextView")) {
-                attrs.addAll(Arrays.asList(
-                        "android:text", "android:textSize", "android:textColor", "android:textStyle",
-                        "android:fontFamily", "android:typeface", "android:lines", "android:maxLines",
-                        "android:singleLine", "android:gravity", "android:ellipsize", "android:hint",
-                        "android:textColorHint", "android:inputType", "android:imeOptions",
-                        "android:drawableLeft", "android:drawableTop", "android:drawableRight", "android:drawableBottom",
-                        "android:drawablePadding", "android:drawableTint"
-                ));
-            }
-
-            if (classInfo.a("ImageView")) {
-                attrs.addAll(Arrays.asList(
-                        "android:src", "android:scaleType", "android:tint",
-                        "android:adjustViewBounds", "android:cropToPadding"
-                ));
-            }
-
-            if (classInfo.a("LinearLayout")) {
-                attrs.addAll(Arrays.asList(
-                        "android:orientation", "android:gravity", "android:weightSum",
-                        "android:baselineAligned"
-                ));
-            }
-
-            if (classInfo.a("ViewGroup")) {
-                attrs.addAll(Arrays.asList(
-                        "android:clipChildren", "android:clipToPadding", "android:animateLayoutChanges"
-                ));
-            }
-
-            if (classInfo.a("ProgressBar")) {
-                attrs.addAll(Arrays.asList(
-                        "android:max", "android:progress", "android:indeterminate",
-                        "android:indeterminateTint", "android:progressTint"
-                ));
-            }
-
-            if (classInfo.a("CompoundButton")) {
-                attrs.addAll(Arrays.asList(
-                        "android:checked", "android:button", "android:buttonTint"
-                ));
-            }
-
+            
             if (classInfo.b("CardView")) {
-                attrs.addAll(Arrays.asList(
-                        "app:cardBackgroundColor", "app:cardCornerRadius", "app:cardElevation",
-                        "app:cardMaxElevation", "app:cardUseCompatPadding", "app:cardPreventCornerOverlap",
-                        "app:contentPadding", "app:strokeColor", "app:strokeWidth"
-                ));
-            }
-
-            if (classInfo.b("MaterialButton")) {
-                attrs.addAll(Arrays.asList(
-                        "app:icon", "app:iconTint", "app:iconGravity", "app:iconPadding",
-                        "app:strokeColor", "app:strokeWidth", "app:cornerRadius", "app:rippleColor"
-                ));
+                attrs.add("app:cardBackgroundColor");
+                attrs.add("app:cardElevation");
+                attrs.add("app:cardCornerRadius");
+                attrs.add("app:cardUseCompatPadding");
+                if (simpleName.equals("MaterialCardView")) {
+                    attrs.add("app:strokeColor");
+                    attrs.add("app:strokeWidth");
+                }
+            } else if (classInfo.b("MaterialButton") || classInfo.b("Button")) {
+                attrs.add("app:cornerRadius");
+                attrs.add("app:backgroundTint");
+                attrs.add("app:strokeWidth");
+                attrs.add("app:strokeColor");
+                attrs.add("app:icon");
+                attrs.add("app:iconTint");
+                attrs.add("app:iconGravity");
+            } else if (classInfo.b("ImageView") || classInfo.b("CircleImageView")) {
+                attrs.add("app:tint");
+                if (classInfo.b("CircleImageView")) {
+                    attrs.add("app:civ_border_width");
+                    attrs.add("app:civ_border_color");
+                    attrs.add("app:civ_circle_background_color");
+                }
+            } else if (classInfo.b("Switch") || classInfo.b("CheckBox") || classInfo.b("RadioButton")) {
+                attrs.add("app:buttonTint");
+                if (classInfo.b("Switch")) {
+                    attrs.add("app:thumbTint");
+                    attrs.add("app:trackTint");
+                }
+            } else if (classInfo.b("ProgressBar") || classInfo.b("SeekBar")) {
+                attrs.add("app:indicatorColor");
+                attrs.add("app:trackColor");
+                attrs.add("app:trackThickness");
+                if (classInfo.b("SeekBar")) {
+                    attrs.add("app:thumbColor");
+                    attrs.add("app:haloColor");
+                    attrs.add("app:tickColor");
+                }
+            } else if (classInfo.b("TabLayout")) {
+                attrs.add("app:tabIndicatorColor");
+                attrs.add("app:tabIndicatorHeight");
+                attrs.add("app:tabTextColor");
+                attrs.add("app:tabSelectedTextColor");
+                attrs.add("app:tabMode");
+                attrs.add("app:tabGravity");
+            } else if (classInfo.b("BottomNavigationView")) {
+                attrs.add("app:itemIconTint");
+                attrs.add("app:itemTextColor");
+                attrs.add("app:itemRippleColor");
             }
         }
-
-        return attrs.stream().distinct().sorted().collect(Collectors.toList());
+        return attrs;
     }
 
     private String getSimpleName(ViewBean bean) {
@@ -983,7 +922,6 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
         dialog.show();
 
         binding.title.setText(Helper.getText(tvName));
-        binding.viewId.setText(bean.id);
 
         var adapter = new AttributesAdapter();
         adapter.setOnItemClickListener(
@@ -1034,88 +972,6 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                     showTextInputDialog(9999, true);
                     dialog.dismiss();
                 });
-        binding.shortcuts.setVisibility(View.VISIBLE);
-        binding.shortcuts.setOnClickListener(v -> showShortcutsDialog(attributes, dialog));
-    }
-
-    private void showShortcutsDialog(LinkedHashMap<String, String> currentAttributes, BottomSheetDialog parentDialog) {
-        AttributeShortcutsManager manager = new AttributeShortcutsManager();
-        BottomSheetDialog dialog = new BottomSheetDialog(getContext());
-        var binding = PropertyPopupParentAttrBinding.inflate(LayoutInflater.from(getContext()));
-        dialog.setContentView(binding.getRoot());
-
-        binding.title.setText("Shortcuts");
-        binding.viewId.setVisibility(View.GONE);
-        binding.sourceCode.setVisibility(View.GONE);
-        binding.shortcuts.setVisibility(View.GONE);
-
-        var adapter = new AttributesAdapter();
-        LinkedHashMap<String, String> shortcutsMap = new LinkedHashMap<>();
-        for (AttributeShortcutsManager.ShortcutItem item : manager.getShortcuts()) {
-            shortcutsMap.put(item.name, item.value);
-        }
-
-        adapter.setAttributes(shortcutsMap);
-        adapter.submitList(new ArrayList<>(shortcutsMap.keySet()));
-
-        adapter.setOnItemClickListener(new AttributesAdapter.ItemClickListener() {
-            @Override
-            public void onItemClick(LinkedHashMap<String, String> attributes, String attr) {
-                currentAttributes.put(attr, attributes.get(attr));
-                saveAttributes(currentAttributes);
-                dialog.dismiss();
-                parentDialog.dismiss();
-            }
-
-            @Override
-            public void onItemLongClick(LinkedHashMap<String, String> attributes, String attr) {
-                new MaterialAlertDialogBuilder(getContext())
-                        .setTitle("Delete Shortcut")
-                        .setMessage("Delete " + attr + "?")
-                        .setPositiveButton("Delete", (d, w) -> {
-                            manager.removeShortcut(attr);
-                            attributes.remove(attr);
-                            adapter.submitList(new ArrayList<>(attributes.keySet()));
-                            adapter.notifyDataSetChanged();
-                        })
-                        .setNegativeButton("Cancel", null)
-                        .show();
-            }
-        });
-
-        binding.recyclerView.setAdapter(adapter);
-        binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        binding.add.setOnClickListener(v -> showAddShortcutDialog(manager, adapter));
-
-        dialog.show();
-    }
-
-    private void showAddShortcutDialog(AttributeShortcutsManager manager, AttributesAdapter adapter) {
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getContext());
-        builder.setTitle("Add Shortcut");
-
-        StyleEditorAddAttrBinding binding = StyleEditorAddAttrBinding.inflate(LayoutInflater.from(getContext()));
-        builder.setView(binding.getRoot());
-
-        builder.setPositiveButton("Save", (dialog, which) -> {
-            String name = binding.attrName.getText().toString().trim();
-            String value = binding.attrValue.getText().toString().trim();
-
-            if (!name.isEmpty()) {
-                manager.addShortcut(name, value);
-                LinkedHashMap<String, String> shortcutsMap = new LinkedHashMap<>();
-                for (AttributeShortcutsManager.ShortcutItem item : manager.getShortcuts()) {
-                    shortcutsMap.put(item.name, item.value);
-                }
-                adapter.setAttributes(shortcutsMap);
-                adapter.submitList(new ArrayList<>(shortcutsMap.keySet()));
-                adapter.notifyDataSetChanged();
-            }
-        });
-
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
     }
 
     private void addNewAttribute(Map<String, String> attributes) {
@@ -1179,22 +1035,9 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
         PropertyPopupInputTextBinding binding =
                 PropertyPopupInputTextBinding.inflate(LayoutInflater.from(getContext()));
 
-        EditText input = binding.edInput;
-        String currentValue = attributes.getOrDefault(attr, "");
-        input.setText(currentValue);
-
-        List<String> suggestions = getAttributeValueSuggestions(attr);
-        if (!suggestions.isEmpty()) {
-            binding.tiInput.setVisibility(View.GONE);
-            binding.tiAutoCompleteInput.setVisibility(View.VISIBLE);
-            binding.edTiAutoCompleteInput.setText(currentValue);
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
-            binding.edTiAutoCompleteInput.setAdapter(adapter);
-            binding.edTiAutoCompleteInput.setThreshold(0);
-            binding.edTiAutoCompleteInput.setOnFocusChangeListener((v, hasFocus) -> {
-                if (hasFocus) binding.edTiAutoCompleteInput.showDropDown();
-            });
-            input = binding.edTiAutoCompleteInput;
+        var input = binding.edInput;
+        if (attributes.containsKey(attr)) {
+            input.setText(attributes.get(attr));
         }
 
         binding.tiInput.setHint(
@@ -1205,11 +1048,10 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
         }
 
         builder.setView(binding.getRoot());
-        EditText finalInput = input;
         builder.setPositiveButton(
                 R.string.common_word_save,
                 (d, w) -> {
-                    var inputValue = Helper.getText(finalInput).trim();
+                    var inputValue = Helper.getText(input).trim();
                     if (!inputValue.isEmpty()) {
                         attributes.put(attr, inputValue);
                         saveAttributes(attributes);
@@ -1219,13 +1061,12 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                 });
         builder.setNegativeButton(R.string.common_word_cancel, null);
         var dialog = builder.create();
-        EditText finalInput1 = input;
         dialog.setOnShowListener(
                 d -> {
                     var positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                    positiveButton.setEnabled(!Helper.getText(finalInput1).trim().isEmpty());
+                    positiveButton.setEnabled(!Helper.getText(input).trim().isEmpty());
 
-                    finalInput1.addTextChangedListener(
+                    input.addTextChangedListener(
                             new BaseTextWatcher() {
                                 @Override
                                 public void onTextChanged(
@@ -1234,38 +1075,12 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                                         int before,
                                         int after) {
                                     positiveButton.setEnabled(
-                                            !Helper.getText(finalInput1).trim().isEmpty());
+                                            !Helper.getText(input).trim().isEmpty());
                                 }
                             });
                 });
         dialog.show();
         dialog.setOnDismissListener(d -> showInjectDialog());
-    }
-
-    private List<String> getAttributeValueSuggestions(String attr) {
-        List<String> suggestions = new ArrayList<>();
-        String name = attr.contains(":") ? attr.substring(attr.indexOf(":") + 1) : attr;
-
-        if (name.startsWith("layout_align") || name.startsWith("layout_center") || name.startsWith("layout_to")) {
-            suggestions.addAll(Arrays.asList("true", "false", "@id/"));
-        }
-
-        switch (name) {
-            case "visibility" -> suggestions.addAll(Arrays.asList("visible", "invisible", "gone"));
-            case "orientation" -> suggestions.addAll(Arrays.asList("horizontal", "vertical"));
-            case "layout_width", "layout_height" ->
-                    suggestions.addAll(Arrays.asList("match_parent", "wrap_content"));
-            case "textStyle" -> suggestions.addAll(Arrays.asList("normal", "bold", "italic"));
-            case "typeface" ->
-                    suggestions.addAll(Arrays.asList("normal", "sans", "serif", "monospace"));
-            case "ellipsize" ->
-                    suggestions.addAll(Arrays.asList("none", "start", "middle", "end", "marquee"));
-            case "focusable", "clickable", "enabled", "longClickable", "focusableInTouchMode",
-                 "checked", "selected", "duplicateParentState", "saveEnabled",
-                 "filterTouchesWhenObscured", "fitsSystemWindows", "clipToPadding",
-                 "clipChildren" -> suggestions.addAll(Arrays.asList("true", "false"));
-        }
-        return suggestions;
     }
 
     private void saveAttributes(Map<String, String> attributes) {
@@ -1316,11 +1131,13 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                         return true;
                     }
                 };
-        private LinkedHashMap<String, String> attributes;
-        private ItemClickListener listener;
+
         public AttributesAdapter() {
             super(DIFF_CALLBACK);
         }
+
+        private LinkedHashMap<String, String> attributes;
+        private ItemClickListener listener;
 
         public void setAttributes(LinkedHashMap<String, String> attributes) {
             this.attributes = attributes;
@@ -1340,13 +1157,6 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             holder.bind(getItem(position));
-        }
-
-        public interface ItemClickListener {
-
-            void onItemClick(LinkedHashMap<String, String> attributes, String item);
-
-            void onItemLongClick(LinkedHashMap<String, String> attributes, String item);
         }
 
         public class ViewHolder extends RecyclerView.ViewHolder {
@@ -1374,6 +1184,13 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                             return true;
                         });
             }
+        }
+
+        public interface ItemClickListener {
+
+            void onItemClick(LinkedHashMap<String, String> attributes, String item);
+
+            void onItemLongClick(LinkedHashMap<String, String> attributes, String item);
         }
     }
 }
