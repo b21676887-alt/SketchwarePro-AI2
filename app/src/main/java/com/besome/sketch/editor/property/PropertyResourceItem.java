@@ -46,6 +46,10 @@ import pro.sketchware.utility.TranslationFunction;
 
 public class PropertyResourceItem extends RelativeLayout implements View.OnClickListener {
 
+    public interface OnSelectListener {
+        void onSelect(String selected);
+    }
+
     private final SvgUtils svgUtils;
     private final FilePathUtil fpu = new FilePathUtil();
     private final Map<String, View> imageCache = new HashMap<>();
@@ -200,6 +204,45 @@ public class PropertyResourceItem extends RelativeLayout implements View.OnClick
                         setValue(selected);
                         if (n != null) {
                             n.a(b, selected);
+                        }
+                    }
+                })
+                .setNegativeButton(R.string.common_word_cancel, null)
+                .show();
+    }
+
+    public void showPickerDialog(String title, int iconRes, String currentValue, OnSelectListener listener) {
+        SearchWithRecyclerViewBinding binding = SearchWithRecyclerViewBinding.inflate(LayoutInflater.from(getContext()));
+
+        ArrayList<String> images = jC.d(a).m();
+        images.addAll(new VectorDrawableLoader().getVectorDrawables(DesignActivity.sc_id));
+        images.add(0, d ? "default_image" : "NONE");
+
+        ImagePickerAdapter adapter = new ImagePickerAdapter(images, currentValue);
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.recyclerView.setAdapter(adapter);
+
+        binding.searchInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
+            @Override public void onTextChanged(CharSequence s, int st, int b, int c) {}
+            @Override public void afterTextChanged(Editable s) {
+                adapter.filter(s.toString().toLowerCase());
+            }
+        });
+
+        new MaterialAlertDialogBuilder(getContext())
+                .setTitle(title)
+                .setIcon(iconRes)
+                .setView(binding.getRoot())
+                .setPositiveButton(R.string.common_word_select, (v, which) -> {
+                    String selected = adapter.getSelected();
+                    if (!selected.isEmpty()) {
+                        setValue(selected);
+                        if (n != null) {
+                            n.a(b, selected);
+                        }
+                        if (listener != null) {
+                            listener.onSelect(selected);
                         }
                     }
                 })
