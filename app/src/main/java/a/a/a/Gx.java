@@ -191,9 +191,8 @@ public class Gx {
 
             case "ConstraintLayout":
             case "androidx.constraintlayout.widget.ConstraintLayout":
-                classInfos = "View.ViewGroup.ConstraintLayout";
-                break;
-
+                classInfos = "View.Clickable.ViewGroup.ConstraintLayout";
+                
             case "ScrollView":
                 classInfos = "View.ViewGroup.FrameLayout.ScrollView";
                 break;
