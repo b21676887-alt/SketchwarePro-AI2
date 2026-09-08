@@ -21,10 +21,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ValueAnimator;
-import android.view.animation.DecelerateInterpolator;
 
 import androidx.annotation.StringRes;
 import androidx.appcompat.content.res.AppCompatResources;
@@ -33,11 +29,7 @@ import com.besome.sketch.beans.ProjectFileBean;
 import com.besome.sketch.beans.ProjectResourceBean;
 import com.besome.sketch.beans.ViewBean;
 import com.besome.sketch.beans.WidgetCollectionBean;
-import com.besome.sketch.editor.view.item.ItemCardView;
-import com.besome.sketch.editor.view.item.ItemConstraintLayout;
 import com.besome.sketch.editor.view.item.ItemHorizontalScrollView;
-import com.besome.sketch.editor.view.item.ItemLinearLayout;
-import com.besome.sketch.editor.view.item.ItemRelativeLayout;
 import com.besome.sketch.editor.view.item.ItemVerticalScrollView;
 import com.besome.sketch.editor.view.palette.IconAdView;
 import com.besome.sketch.editor.view.palette.IconBase;
@@ -74,6 +66,7 @@ import pro.sketchware.R;
 import pro.sketchware.utility.ThemeUtils;
 import pro.sketchware.widgets.IconCustomWidget;
 import pro.sketchware.widgets.WidgetsCreatorManager;
+import pro.sketchware.utility.TranslationFunction;
 
 @SuppressLint({"ClickableViewAccessibility", "SetTextI18n"})
 public class ViewEditor extends RelativeLayout implements View.OnClickListener, View.OnTouchListener {
@@ -148,27 +141,14 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
     }
 
     private void animateUpDown() {
-    animatorTranslateY = ObjectAnimator.ofFloat(deleteView, "TranslationY", deleteView.getHeight() * 2, 0.0f);
-    animatorTranslateY.setDuration(500L);
-    animatorTranslateY.setInterpolator(new OvershootInterpolator());
-    animatorTranslateY.addListener(new AnimatorListenerAdapter() {
-        @Override
-        public void onAnimationEnd(Animator animation) {
-            isAnimating = false;
-        }
-    });
-
-    animatorTranslateX = ObjectAnimator.ofFloat(deleteView, "TranslationY", 0.0f, deleteView.getHeight() * 2);
-    animatorTranslateX.setDuration(300L);
-    animatorTranslateX.setInterpolator(new DecelerateInterpolator());
-    animatorTranslateX.addListener(new AnimatorListenerAdapter() {
-        @Override
-        public void onAnimationEnd(Animator animation) {
-            deleteView.setVisibility(View.GONE);
-            isAnimating = false;
-        }
-    });
-}
+        animatorTranslateY = ObjectAnimator.ofFloat(deleteView, "TranslationY", 0.0f);
+        animatorTranslateY.setDuration(500L);
+        animatorTranslateY.setInterpolator(new OvershootInterpolator());
+        animatorTranslateX = ObjectAnimator.ofFloat(deleteView, "TranslationY", deleteView.getHeight() * 2);
+        animatorTranslateX.setDuration(500L);
+        animatorTranslateX.setInterpolator(new OvershootInterpolator());
+        isAnimating = true;
+    }
 
     private void addPaletteGroupItems() {
         LinearLayout.LayoutParams paletteLayoutParams =
@@ -273,6 +253,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
                 .start();
     }
 
+
     @Override
     public void onClick(View view) {
         int id = view.getId();
@@ -328,12 +309,6 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
                     isDragged = false;
                     return true;
                 }
-                if (deleteView.getVisibility() == View.VISIBLE) {
-                animateUpDown();
-                animatorTranslateX.start();
-                deleteView.setVisibility(View.GONE);
-                C = false;
-                }
                 return true;
             } else if (!isDragged) {
                 if (Math.abs(posInitX - motionEvent.getRawX()) >= minDist || Math.abs(posInitY - motionEvent.getRawY()) >= minDist) {
@@ -363,7 +338,6 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
                     dummyView.setAllow(false);
                     viewPane.resetView(true);
                 }
-                
                 return true;
             }
         } else if (!isDragged) {
@@ -708,7 +682,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
             } else if (currentTouchedView instanceof IconMapView && !draggingListener.isGoogleMapEnabled()) {
                 bB.b(getContext(), getString(R.string.design_library_guide_setup_first), bB.TOAST_NORMAL).show();
                 return;
-            } else if ((currentTouchedView.getClass().getName().contains("AndroidxOrMaterialView") || (currentTouchedView instanceof IconBase && ((IconBase) currentTouchedView).getBean().type == ViewBean.VIEW_TYPE_LAYOUT_CONSTRAINT)) && !isAppCompatEnabled) {
+            } else if (currentTouchedView instanceof AndroidxOrMaterialView && !isAppCompatEnabled) {
                 bB.b(getContext(), getString(R.string.design_library_guide_setup_first), bB.TOAST_NORMAL).show();
                 return;
             }
@@ -733,22 +707,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
             }
         } else {
             currentTouchedView.setVisibility(View.GONE);
-            if (currentTouchedView instanceof ItemLinearLayout || 
-                currentTouchedView instanceof ItemHorizontalScrollView || 
-                currentTouchedView instanceof ItemVerticalScrollView || 
-                currentTouchedView instanceof ItemCardView || 
-                currentTouchedView instanceof ItemRelativeLayout || 
-                currentTouchedView instanceof ItemConstraintLayout) {
-                b(true, currentTouchedView instanceof IconCustomWidget);
-            } else {
-                // Bug fix: leaf widgets (Button, TextView, ImageView, Switch, etc.)
-                // never called b(), so the delete bar stayed GONE for them.
-                // A GONE view has zero width/height, making hitTestIconDelete always
-                // return false, so D was never set to true, and the ACTION_UP deletion
-                // path was never reached — drag-to-delete was silently broken for
-                // every non-container widget on the canvas.
-                b(true, false);
-            }
+            b(true, currentTouchedView instanceof IconCustomWidget);
             viewPane.addRootLayout(((ItemView) currentTouchedView).getBean());
         }
         if (hitTestToPane(posInitX, posInitY)) {
@@ -829,8 +788,8 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
     }
 
     private void cancelAnimation() {
-    if (animatorTranslateY != null && animatorTranslateY.isRunning()) animatorTranslateY.cancel();
-    if (animatorTranslateX != null && animatorTranslateX.isRunning()) animatorTranslateX.cancel();
+        if (animatorTranslateY.isRunning()) animatorTranslateY.cancel();
+        if (animatorTranslateX.isRunning()) animatorTranslateX.cancel();
     }
 
     private void setPreviewColors(String str) {
@@ -840,32 +799,27 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
     }
 
     private void b(boolean z, boolean isCustomWidget) {
-    if (isCustomWidget) {
-        deleteIcon.setImageDrawable(AppCompatResources.getDrawable(getContext(), R.drawable.ic_mtrl_edit));
-        deleteText.setText("Drag here to see the Actions");
-    } else if (z) {
-        deleteIcon.setImageDrawable(AppCompatResources.getDrawable(getContext(), R.drawable.ic_mtrl_delete));
-        deleteText.setText("Drag here to delete");
-        setDeleteViewIconAndTextUi(false);
-    }
-
-    if (C == z && deleteView.getVisibility() == View.VISIBLE) return; // already showing, skip
-    C = z;
-
-    if (z || isCustomWidget) {
-        // Show delete bar
-        deleteView.setVisibility(View.VISIBLE);
+        if (isCustomWidget) {
+            deleteIcon.setImageDrawable(AppCompatResources.getDrawable(getContext(), R.drawable.ic_mtrl_edit));
+            deleteText.setText("Drag here to see the Actions");
+        } else if (z) {
+            deleteIcon.setImageDrawable(AppCompatResources.getDrawable(getContext(), R.drawable.ic_mtrl_delete));
+            deleteText.setText("Drag here to delete");
+            setDeleteViewIconAndTextUi(false);
+        }
         deleteView.bringToFront();
-        animateUpDown();           // recreate animators fresh every time
-        isAnimating = true;
-        animatorTranslateY.start();
-    } else {
-        // Hide delete bar
-        if (deleteView.getVisibility() == View.VISIBLE) {
+        if (!isAnimating) {
+            animateUpDown();
+        }
+        if (C == z) return;
+        C = z;
+        cancelAnimation();
+        if (z) {
+            animatorTranslateY.start();
+        } else {
             animatorTranslateX.start();
         }
     }
-}
 
     public void initialize(String str, ProjectFileBean projectFileBean) {
         a = str;
@@ -1079,12 +1033,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
     }
 
     public void addFab(ViewBean viewBean) {
-        if (viewPane != null) {
-            View fab = viewPane.addFab(viewBean);
-            if (fab != null) {
-                fab.setOnTouchListener(this);
-            }
-        }
+        viewPane.addFab(viewBean).setOnTouchListener(this);
     }
 
     public void a(ItemView syVar, boolean z) {
@@ -1092,15 +1041,9 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
             selectedItem.setSelection(false);
         }
         selectedItem = syVar;
-        if (selectedItem != null) {
-            selectedItem.setSelection(true);
-            if (widgetSelectedListener != null) {
-                widgetSelectedListener.a(z, selectedItem.getBean().id);
-            }
-        } else {
-            if (widgetSelectedListener != null) {
-                widgetSelectedListener.a(false, "");
-            }
+        selectedItem.setSelection(true);
+        if (widgetSelectedListener != null) {
+            widgetSelectedListener.a(z, selectedItem.getBean().id);
         }
     }
 

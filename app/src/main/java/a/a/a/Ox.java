@@ -362,8 +362,7 @@ public class Ox {
                 writeViewPadding(widgetTag, viewBean);
             }
             writeBackgroundResource(widgetTag, viewBean);
-            
-            if (viewBean.getClassInfo().a("ViewGroup") || type == ViewBean.VIEW_TYPE_LAYOUT_CONSTRAINT) {
+            if (viewBean.getClassInfo().a("ViewGroup")) {
                 writeViewGravity(widgetTag, viewBean);
             }
         }
@@ -432,7 +431,7 @@ public class Ox {
                 writeLayoutGravity(widgetTag, viewBean);
             }
         }
-        if (viewBean.getClassInfo().a("ViewGroup") || viewBean.type == ViewBean.VIEW_TYPE_LAYOUT_CONSTRAINT) {
+        if (viewBean.getClassInfo().a("ViewGroup")) {
             for (ViewBean bean : views) {
                 if (bean.parent != null && bean.parent.equals(viewBean.id)) {
                     writeWidget(widgetTag, bean);

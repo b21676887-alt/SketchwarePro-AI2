@@ -739,9 +739,7 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
         List<String> prioritizedSuggestions = new ArrayList<>();
 
         switch (typeView) {
-            case "0":
-            case "1":
-            case "50":  // LinearLayout
+            case "0":  // LinearLayout
                 prioritizedSuggestions.addAll(Arrays.asList(
                         "LinearLayout", "FrameLayout", "RelativeLayout",
                         "androidx.constraintlayout.widget.ConstraintLayout",

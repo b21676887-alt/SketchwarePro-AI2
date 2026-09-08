@@ -1,43 +1,7 @@
 package a.a.a;
 
-import static com.besome.sketch.editor.property.PropertyAttributesItem.RELATIVE_IDS;
+import mod.hilal.saif.components.ComponentsHandler;
 
-import android.annotation.SuppressLint;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-
-import com.besome.sketch.beans.ImageBean;
-import com.besome.sketch.beans.LayoutBean;
-import com.besome.sketch.beans.ProjectFileBean;
-import com.besome.sketch.beans.TextBean;
-import com.besome.sketch.beans.ViewBean;
-import com.besome.sketch.editor.manage.library.material3.Material3LibraryManager;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-
-import java.io.IOException;
-import java.io.StringReader;
-import java.nio.CharBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-import dev.aldi.sayuti.editor.injection.AppCompatInjection;
-import mod.agus.jcoderz.beans.ViewBeans;
-import mod.jbk.util.LogUtil;
-import pro.sketchware.managers.inject.InjectRootLayoutManager;
-import pro.sketchware.utility.InjectAttributeHandler;
-import pro.sketchware.xml.XmlBuilder;
-
-@SuppressLint("RtlHardcoded")
 public class Gx {
     public String className;
     public String[] classPath;
@@ -52,6 +16,7 @@ public class Gx {
         return className;
     }
 
+    // keeping this method, because it's used in a.a.a.eC
     public String a() {
         return className;
     }
@@ -189,10 +154,6 @@ public class Gx {
                 classInfos = "View.Clickable.ViewGroup.RelativeLayout";
                 break;
 
-            case "ConstraintLayout":
-            case "androidx.constraintlayout.widget.ConstraintLayout":
-                classInfos = "View.Clickable.ViewGroup.ConstraintLayout";
-                
             case "ScrollView":
                 classInfos = "View.ViewGroup.FrameLayout.ScrollView";
                 break;
@@ -278,7 +239,6 @@ public class Gx {
                 break;
 
             case "MaterialButton":
-            case "com.google.android.material.button.MaterialButton":
                 classInfos = "View.Clickable.TextView.Button";
                 break;
 
@@ -291,12 +251,10 @@ public class Gx {
                 break;
 
             case "SwipeRefreshLayout":
-            case "androidx.swiperefreshlayout.widget.SwipeRefreshLayout":
                 classInfos = "View.ViewGroup.SwipeRefreshLayout";
                 break;
 
             case "TextInputLayout":
-            case "com.google.android.material.textfield.TextInputLayout":
                 classInfos = "View.ViewGroup.TextInputLayout";
                 break;
 
@@ -305,8 +263,6 @@ public class Gx {
                 break;
 
             case "CardView":
-            case "androidx.cardview.widget.CardView":
-            case "com.google.android.material.card.MaterialCardView":
                 classInfos = "View.Clickable.ViewGroup.FrameLayout.CardView";
                 break;
 
@@ -323,7 +279,6 @@ public class Gx {
                 break;
 
             case "RecyclerView":
-            case "androidx.recyclerview.widget.RecyclerView":
                 classInfos = "View.ViewGroup.RecyclerView";
                 break;
 
@@ -431,6 +386,42 @@ public class Gx {
                 classInfos = "Component.Gyroscope";
                 break;
 
+            case "Compass":
+                classInfos = "Component.Sensor.Compass";
+                break;
+
+            case "LightSensor":
+                classInfos = "Component.Sensor.LightSensor";
+                break;
+
+            case "ProximitySensor":
+                classInfos = "Component.Sensor.ProximitySensor";
+                break;
+
+            case "Barometer":
+                classInfos = "Component.Sensor.Barometer";
+                break;
+
+            case "StepCounter":
+                classInfos = "Component.Sensor.StepCounter";
+                break;
+
+            case "WorkManager":
+                classInfos = "Component.Manager.WorkManager";
+                break;
+
+            case "AlarmManager":
+                classInfos = "Component.Manager.AlarmManager";
+                break;
+
+            case "BiometricManager":
+                classInfos = "Component.Manager.BiometricManager";
+                break;
+
+            case "FusedLocationManager":
+                classInfos = "Component.Manager.FusedLocationManager";
+                break;
+
             case "FirebaseStorage":
                 classInfos = "Component.FirebaseStorage";
                 break;
@@ -448,7 +439,7 @@ public class Gx {
                 break;
 
             default:
-                classInfos = mod.hilal.saif.components.ComponentsHandler.getClassByTypeName(className);
+                classInfos = ComponentsHandler.getClassByTypeName(className);
         }
 
         classPath = classInfos.split("\\.");
