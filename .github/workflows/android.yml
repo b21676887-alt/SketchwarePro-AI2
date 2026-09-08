@@ -133,7 +133,7 @@ jobs:
       actions: write
       contents: write
     steps:
-      - name: Delete old artifacts (keep only 5 most recent)
+      - name: Delete old artifacts (keep only 20 most recent)
         uses: actions/github-script@v9
         with:
           script: |
@@ -144,7 +144,7 @@ jobs:
             });
 
             artifacts.artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            const toDelete = artifacts.artifacts.slice(5);
+            const toDelete = artifacts.artifacts.slice(20);
 
             for (const artifact of toDelete) {
               await github.rest.actions.deleteArtifact({
@@ -154,7 +154,7 @@ jobs:
               });
             }
 
-      - name: Delete old releases (keep only 5 most recent)
+      - name: Delete old releases (keep only 20 most recent)
         uses: actions/github-script@v9
         with:
           script: |
@@ -165,7 +165,7 @@ jobs:
             });
 
             releases.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            const toDelete = releases.slice(5);
+            const toDelete = releases.slice(20);
 
             for (const release of toDelete) {
               await github.rest.repos.deleteRelease({
