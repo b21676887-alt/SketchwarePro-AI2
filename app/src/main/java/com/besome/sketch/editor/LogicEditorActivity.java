@@ -191,12 +191,13 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	private TextView syntaxCheckText;
 	private final Handler syntaxCheckHandler = new Handler();
 	private final Runnable syntaxCheckRunnable = this::runSyntaxCheck;
-	// تعديل runSyntaxCheck لاستخدام خيط معالجة آمن وتفادي إنشائه باستمرار
-	private final ExecutorService syntaxExecutor = Executors.newSingleThreadExecutor();
 	private SvgUtils svgUtils;
 	
 	// Executor لخيوط الـ AI
 	private final ExecutorService aiExecutor = Executors.newSingleThreadExecutor();
+	// تعديل runSyntaxCheck لاستخدام خيط معالجة آمن وتفادي إنشائه باستمرار
+	private final ExecutorService syntaxExecutor = Executors.newSingleThreadExecutor();
+	
 	
 	public static ArrayList<String> getAllJavaFileNames(String projectScId) {
 		ArrayList<String> javaFileNames = new ArrayList<>();
@@ -2581,7 +2582,6 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	}
 	
 	
-	
 	private void runSyntaxCheck() {
 		if (o == null || o.getBlocks().isEmpty()) {
 			syntaxCheckContainer.setVisibility(View.GONE);
@@ -2978,24 +2978,14 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 				});
 			} catch (Exception e) {
 				try { if (crashlytics != null) crashlytics.recordException(e); } catch (Exception ignored) {}
-				// إضافة التحقق من حالة الـ Activity قبل إغلاق ProgressDialog
 				runOnUiThread(() -> {
-					if (!isFinishing() && !isDestroyed() && progress.isShowing()) {
-						try {
-							progress.dismiss();
-						} catch (Exception ignored) {}
-					}
-					if (code == null || code.trim().isEmpty()) {
-						Toast.makeText(this, "لم يُحصل على نتيجة من المزوّد.", Toast.LENGTH_SHORT).show();
-						return;
-					}
-					if (!isFinishing() && !isDestroyed()) {
-						showGeneratedCodeDialog(code);
-					}
+					try {
+						if (progress.isShowing()) progress.dismiss();
+					} catch (Exception ignored) {}
+					Toast.makeText(this,
+					"فشل توليد الكود: " + (e.getMessage() == null ? "خطأ" : e.getMessage()),
+					Toast.LENGTH_LONG).show();
 				});
-				
-				
-				
 			}
 		});
 	}
