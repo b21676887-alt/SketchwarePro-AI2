@@ -2137,7 +2137,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	
 	// إضافة onDestroy لتنظيف الـ Activity بالكامل
 	@Override
-	protected void onDestroy() {
+	public void onDestroy() {
 		super.onDestroy();
 		if (syntaxExecutor != null && !syntaxExecutor.isShutdown()) {
 			syntaxExecutor.shutdownNow();
