@@ -2777,15 +2777,15 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	}
 	
 	private String buildExistingEventCode() {
-		try {
-			yq yqExporter = new yq(this, scId);
-			yqExporter.a(jC.c(scId), jC.b(scId), jC.a(scId));
-			String code = new Fx(M.getActivityName(), "preview", yqExporter.N, o.getBlocks(), isViewBindingEnabled).a();
-			return code == null ? "" : code.trim();
-		} catch (Exception e) {
-			return "";
-		}
-	}
+        try {
+            yq yqExporter = new yq(this, scId);
+            yqExporter.a(jC.c(scId), jC.b(scId), jC.a(scId));
+            String code = new Fx(M.getActivityName(), yqExporter.N, o.getBlocks(), isViewBindingEnabled).a();
+            return code == null ? "" : code.trim();
+        } catch (Exception e) {
+            return "";
+        }
+    }
 	
 	/**
 * يعرض حوار إدخال حيث يكتب المستخدم وصف ما يريد توليده، ثم يبدأ التوليد.
