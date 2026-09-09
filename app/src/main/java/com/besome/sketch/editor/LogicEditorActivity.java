@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.text.TextUtils;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -144,6 +145,7 @@ import android.content.ClipboardManager;
 import pro.sketchware.ia.LayoutGeneratorModelSelector;
 import pro.sketchware.ai.config.DeviceLanguage;
 import pro.sketchware.network.AiProviderService;
+
 
 @SuppressLint({"ClickableViewAccessibility", "RtlHardcoded", "SetTextI18n", "DefaultLocale"})
 public class LogicEditorActivity extends BaseAppCompatActivity implements View.OnClickListener, Vs, View.OnTouchListener, MoreblockImporterDialog.CallBack {
@@ -2055,17 +2057,17 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		} else if (itemId == R.id.menu_logic_undo) {
 			undo();
 		} else if (itemId == R.id.menu_logic_showsource) {
-			 new MaterialAlertDialogBuilder(this)
-                    .setTitle("Source Code")
-                    .setItems(new CharSequence[]{
-                            "View Source Code",
-                            "Generate with AI"
-                    }, (dialog, which) -> {
-                        if (which == 0)      showSourceCode();
-                        else if (which == 1) showAiCodePromptDialog();
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
+			new MaterialAlertDialogBuilder(this)
+			.setTitle("Source Code")
+			.setItems(new CharSequence[]{
+				"View Source Code",
+				"Generate with AI"
+			}, (dialog, which) -> {
+				if (which == 0)      showSourceCode();
+				else if (which == 1) showAiCodePromptDialog();
+			})
+			.setNegativeButton("Cancel", null)
+			.show();
 		}
 		
 		return super.onOptionsItemSelected(menuItem);
@@ -2760,6 +2762,31 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		}
 	}
 	
+	private String buildViewContext() {
+		StringBuilder sb = new StringBuilder();
+		java.util.ArrayList<com.besome.sketch.beans.ViewBean> views = jC.a(scId).d(M.getXmlName());
+		if (views == null) return "";
+		for (com.besome.sketch.beans.ViewBean view : views) {
+			if (view.id == null || view.id.isEmpty()) continue;
+			sb.append(view.id)
+			.append(": ")
+			.append(com.besome.sketch.beans.ViewBean.getViewTypeName(view.type))
+			.append("\n");
+		}
+		return sb.toString();
+	}
+	
+	private String buildExistingEventCode() {
+		try {
+			yq yqExporter = new yq(this, scId);
+			yqExporter.a(jC.c(scId), jC.b(scId), jC.a(scId));
+			String code = new Fx(M.getActivityName(), "preview", yqExporter.N, o.getBlocks(), isViewBindingEnabled).a();
+			return code == null ? "" : code.trim();
+		} catch (Exception e) {
+			return "";
+		}
+	}
+	
 	/**
 * يعرض حوار إدخال حيث يكتب المستخدم وصف ما يريد توليده، ثم يبدأ التوليد.
 */	
@@ -2841,6 +2868,9 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		progress.setCancelable(true);
 		progress.setCanceledOnTouchOutside(false);
 		progress.show();
+		String viewContext = buildViewContext();
+		String existingCode = buildExistingEventCode();
+		String activityName = M.getActivityName();
 		
 		aiExecutor.execute(() -> {
 			try {
@@ -2852,11 +2882,39 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 				String modelName = selectedModel == null ? "llama-3.1-8b-instant" : selectedModel.modelName;
 				
 				// system prompt: اجعل الموديل يطبع كوداً فقط
-				String systemPrompt = "You are a precise Java code generator for Sketchware projects. "
-				+ "Output only valid Java source code (methods, classes or imports) that can be used in an Android project. "
-				+ "Do NOT include explanations, commentary, or anything outside the code block. "
-				+ "If you include code fences, they should be stripped by the caller. "
-				+ DeviceLanguage.responseInstruction();
+				String devicelang = DeviceLanguage.responseInstruction();
+				
+				
+				
+				
+				StringBuilder systemPrompt = new StringBuilder();
+				systemPrompt.append("You are generating Java logic for the \"").append(eventName)
+				.append("\" event of activity \"").append(activityName)
+				.append("\" inside a Sketchware Neo Android project (a visual block-based app builder that also supports raw Java). ");
+				systemPrompt.append("Reply with ONLY plain Java statements that belong inside that event's body - ")
+				.append("no method signature, no class wrapper, no imports, no markdown code fences, no explanation, no comments. ");
+				systemPrompt.append("Reference views using the pattern binding.viewId (e.g. binding.myButton.setText(\"Hi\")), ")
+				.append("which is how this project's generated activities access views.");
+				
+				if (!TextUtils.isEmpty(viewContext)) {
+					systemPrompt.append("\n\nThe current layout has exactly these views (id: type). Use ONLY these ids via binding.<id> - never invent an id that isn't listed here:\n")
+					.append(viewContext);
+				} else {
+					systemPrompt.append("\n\nNo views were found in the current layout, so avoid referencing any binding.<id> unless the user's request clearly implies a view that should exist.");
+				}
+				
+				if (!TextUtils.isEmpty(existingCode)) {
+					systemPrompt.append("\n\nThis event ALREADY contains the following logic:\n")
+					.append(existingCode)
+					.append("\n\nThe user's request below is asking you to modify or upgrade this existing logic, not replace it blindly. ")
+					.append("Keep everything that still makes sense, change only what the request asks for, and return the COMPLETE updated body (not just the new/changed lines, not a diff).");
+				} else {
+					systemPrompt.append("\n\nThis event currently has no logic yet - write it from scratch based on the request below.");
+				}
+				
+				systemPrompt.append(" Keep the code idiomatic Android/Java, use standard APIs, and prefer simple direct statements ")
+				.append("over unnecessary helper methods so more of it can be represented as visual blocks.")
+				.append(devicelang);
 				
 				// user prompt
 				String userPrompt = "User intent:\n" + userIntent + "\n\n"
@@ -2870,7 +2928,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 				
 				// استدعاء مزود الـ AI (مزامن)
 				String rawResponse = AiProviderService.getInstance().sendTextMessage(
-				providerId, modelName, systemPrompt, userPrompt, images
+				providerId, modelName, systemPrompt.toString(), userPrompt, images
 				);
 				
 				final String code = stripFences(rawResponse);
