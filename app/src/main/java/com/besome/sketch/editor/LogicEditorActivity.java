@@ -2121,6 +2121,17 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	}
 	
 	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		try {
+			if (aiExecutor != null && !aiExecutor.isShutdown()) {
+				aiExecutor.shutdownNow();
+			}
+		} catch (Exception ignored) {
+		}
+	}
+	
+	@Override
 	public void onSaveInstanceState(Bundle bundle) {
 		bundle.putString("sc_id", scId);
 		bundle.putString("id", id);
@@ -2761,66 +2772,66 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 * يعرض حوار إدخال حيث يكتب المستخدم وصف ما يريد توليده، ثم يبدأ التوليد.
 */	
 	private void showAiCodePromptDialog() {
-        int dp24 = (int) (24 * getResources().getDisplayMetrics().density);
-        int dp16 = (int) (16 * getResources().getDisplayMetrics().density);
-        int dp8 = (int) (8 * getResources().getDisplayMetrics().density);
-
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp24, dp24, dp24, dp8);
-
-        TextView title = new TextView(this);
-        title.setText("Generate with AI");
-        title.setTextSize(20);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurface));
-        root.addView(title);
-
-        TextView subtitle = new TextView(this);
-        subtitle.setText("Describe what this \"" + eventName + "\" event should do. AI will write the logic and convert it to blocks.");
-        subtitle.setTextSize(14);
-        subtitle.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant));
-        LinearLayout.LayoutParams subParams = new LinearLayout.LayoutParams(-1, -2);
-        subParams.setMargins(0, dp8, 0, dp16);
-        subtitle.setLayoutParams(subParams);
-        root.addView(subtitle);
-
-        com.google.android.material.card.MaterialCardView card = new com.google.android.material.card.MaterialCardView(this);
-        card.setCardElevation(0);
-        card.setRadius(dp8);
-        card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
-        card.setStrokeColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOutlineVariant));
-        card.setCardBackgroundColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorSurfaceVariant));
-
-        EditText editText = new EditText(this);
-        editText.setHint("e.g. show a toast saying Hello when this runs");
-        editText.setBackground(null);
-        editText.setPadding(dp16, dp16, dp16, dp16);
-        editText.setInputType(android.text.InputType.TYPE_CLASS_TEXT
-                | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
-                | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        editText.setMinLines(4);
-        editText.setMaxLines(10);
-        editText.setGravity(android.view.Gravity.TOP | android.view.Gravity.START);
-        editText.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurface));
-        editText.setHintTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOutline));
-
-        card.addView(editText, new ViewGroup.LayoutParams(-1, -2));
-        root.addView(card, new LinearLayout.LayoutParams(-1, -2));
-
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                .setView(root)
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Generate", (dialog, which) -> {
-                    String userIntent = editText.getText() == null ? "" : editText.getText().toString().trim();
-                    if (userIntent.isEmpty()) {
-                        pro.sketchware.utility.SketchwareUtil.toastError("Describe what this event should do first.");
-                        return;
-                    }
-                    generateCodeWithAi(userIntent);
-                })
-                .show();
-    }
+		int dp24 = (int) (24 * getResources().getDisplayMetrics().density);
+		int dp16 = (int) (16 * getResources().getDisplayMetrics().density);
+		int dp8 = (int) (8 * getResources().getDisplayMetrics().density);
+		
+		LinearLayout root = new LinearLayout(this);
+		root.setOrientation(LinearLayout.VERTICAL);
+		root.setPadding(dp24, dp24, dp24, dp8);
+		
+		TextView title = new TextView(this);
+		title.setText("Generate with AI");
+		title.setTextSize(20);
+		title.setTypeface(null, android.graphics.Typeface.BOLD);
+		title.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurface));
+		root.addView(title);
+		
+		TextView subtitle = new TextView(this);
+		subtitle.setText("Describe what this \"" + eventName + "\" event should do. AI will write the logic and convert it to blocks.");
+		subtitle.setTextSize(14);
+		subtitle.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant));
+		LinearLayout.LayoutParams subParams = new LinearLayout.LayoutParams(-1, -2);
+		subParams.setMargins(0, dp8, 0, dp16);
+		subtitle.setLayoutParams(subParams);
+		root.addView(subtitle);
+		
+		com.google.android.material.card.MaterialCardView card = new com.google.android.material.card.MaterialCardView(this);
+		card.setCardElevation(0);
+		card.setRadius(dp8);
+		card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+		card.setStrokeColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOutlineVariant));
+		card.setCardBackgroundColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorSurfaceVariant));
+		
+		EditText editText = new EditText(this);
+		editText.setHint("e.g. show a toast saying Hello when this runs");
+		editText.setBackground(null);
+		editText.setPadding(dp16, dp16, dp16, dp16);
+		editText.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+		| android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
+		| android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+		editText.setMinLines(4);
+		editText.setMaxLines(10);
+		editText.setGravity(android.view.Gravity.TOP | android.view.Gravity.START);
+		editText.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurface));
+		editText.setHintTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOutline));
+		
+		card.addView(editText, new ViewGroup.LayoutParams(-1, -2));
+		root.addView(card, new LinearLayout.LayoutParams(-1, -2));
+		
+		new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+		.setView(root)
+		.setNegativeButton("Cancel", null)
+		.setPositiveButton("Generate", (dialog, which) -> {
+			String userIntent = editText.getText() == null ? "" : editText.getText().toString().trim();
+			if (userIntent.isEmpty()) {
+				pro.sketchware.utility.SketchwareUtil.toastError("Describe what this event should do first.");
+				return;
+			}
+			generateCodeWithAi(userIntent);
+		})
+		.show();
+	}
 	
 	/**
 * يطلب من نموذج AI توليد كود Java حسب الوصف (userIntent).
@@ -2901,13 +2912,26 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	private static String stripFences(String value) {
 		if (value == null) return "";
 		String s = value.trim();
+		
+		// Standard triple-backtick fences with optional language identifier
 		if (s.startsWith("```")) {
 			int firstNewline = s.indexOf('\n');
 			int lastFence = s.lastIndexOf("```");
 			if (firstNewline >= 0 && lastFence > firstNewline) {
 				s = s.substring(firstNewline + 1, lastFence).trim();
+				return s;
 			}
+			
+			// If fences present but not in the normal form, strip leading/trailing backticks permissively
+			s = s.replaceAll("^```+", "").replaceAll("```+$", "").trim();
+			if (!s.isEmpty()) return s;
 		}
+		
+		// Also handle single-line inline fences (rare)
+		if (s.startsWith("`") && s.endsWith("`") && s.length() > 2) {
+			return s.substring(1, s.length() - 1).trim();
+		}
+		
 		return s;
 	}
 	
@@ -2932,6 +2956,44 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		});
 		b.setOnCancelListener(dialog -> { /* لا شيء */ });
 		b.show();
+	}
+	
+	/**
+* يعرض الشيفرة في CodeViewerActivity ثم يظهر حوار مع خيارات (Copy / Save to app / Close).
+* استعمل هذا بدلاً من AlertDialog.setMessage لكود طويل.
+*/	
+	private void openCodeInViewerWithActions(String code) {
+		// افتح viewer المدمج في المشروع لعرض الشيفرة مع تمييز/تمرير
+		try {
+			Intent intent = new Intent(this, CodeViewerActivity.class);
+			intent.putExtra("code", code);
+			intent.putExtra("sc_id", scId);
+			intent.putExtra("scheme", CodeViewerActivity.SCHEME_JAVA);
+			startActivity(intent);
+		} catch (Exception e) {
+			// إن لم يتوفر CodeViewerActivity لأي سبب، نواصل دون فشل
+			if (crashlytics != null) crashlytics.recordException(e);
+		}
+		
+		// عرض حوار إجراءاتٍ إضافية
+		new AlertDialog.Builder(this)
+		.setTitle("AI Result")
+		.setMessage("The generated code is opened in the viewer. You can copy it or save it to the app storage.")
+		.setPositiveButton("Copy", (dialog, which) -> {
+			ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+			if (cm != null) {
+				cm.setPrimaryClip(ClipData.newPlainText("generated_java", code));
+				Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
+			} else {
+				Toast.makeText(this, "Clipboard not available", Toast.LENGTH_SHORT).show();
+			}
+		})
+		.setNegativeButton("Save to app", (dialog, which) -> {
+			boolean ok = saveGeneratedCodeToFile("generated_ai_code_" + System.currentTimeMillis() + ".java", code);
+			Toast.makeText(this, ok ? "Saved to internal storage" : "Save failed", Toast.LENGTH_SHORT).show();
+		})
+		.setNeutralButton("Close", null)
+		.show();
 	}
 	
 	/** مثال إدراج: نسخ الكود للحافظة وإخطار المستخدم. */
