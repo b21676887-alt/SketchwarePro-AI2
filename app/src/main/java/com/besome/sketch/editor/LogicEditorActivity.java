@@ -191,6 +191,8 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	private TextView syntaxCheckText;
 	private final Handler syntaxCheckHandler = new Handler();
 	private final Runnable syntaxCheckRunnable = this::runSyntaxCheck;
+	// تعديل runSyntaxCheck لاستخدام خيط معالجة آمن وتفادي إنشائه باستمرار
+	private final ExecutorService syntaxExecutor = Executors.newSingleThreadExecutor();
 	private SvgUtils svgUtils;
 	
 	// Executor لخيوط الـ AI
@@ -1758,6 +1760,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		
 		View customView = wB.a(this, R.layout.property_popup_selector_single);
 		RadioGroup radioGroup = customView.findViewById(R.id.rg_content);
+		
 		SoundPool soundPool = new SoundPool.Builder()
 		.setMaxStreams(1)
 		.setAudioAttributes(new AudioAttributes.Builder()
@@ -1765,6 +1768,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		.setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
 		.build())
 		.build();
+		
 		soundPool.setOnLoadCompleteListener((soundPool1, sampleId, status) -> {
 			if (soundPool1 != null) {
 				soundPool1.play(sampleId, 1, 1, 1, 0, 1);
@@ -1779,6 +1783,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 			}
 			sound.setOnClickListener(v -> soundPool.load(jC.d(scId).i(Helper.getText(sound)), 1));
 		}
+		
 		dialog.setView(customView);
 		dialog.setPositiveButton(R.string.common_word_select, (v, which) -> {
 			RadioButton checkedRadioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
@@ -1786,8 +1791,13 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 			v.dismiss();
 		});
 		dialog.setNegativeButton(R.string.common_word_cancel, null);
+		
+		// تحرير الذاكرة عند إغلاق النافذة
+		dialog.setOnDismissListener(dialogInterface -> soundPool.release());
+		
 		dialog.show();
 	}
+	
 	
 	public void h(boolean z) {
 		logicTopMenu.setDeleteActive(false);
@@ -2121,6 +2131,18 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		super.onResume();
 		if (!super.isStoragePermissionGranted()) {
 			finish();
+		}
+	}
+	
+	// إضافة onDestroy لتنظيف الـ Activity بالكامل
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (syntaxExecutor != null && !syntaxExecutor.isShutdown()) {
+			syntaxExecutor.shutdownNow();
+		}
+		if (aiExecutor != null && !aiExecutor.isShutdown()) {
+			aiExecutor.shutdownNow();
 		}
 	}
 	
@@ -2558,17 +2580,18 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		syntaxCheckHandler.postDelayed(syntaxCheckRunnable, 500);
 	}
 	
+	
+	
 	private void runSyntaxCheck() {
 		if (o == null || o.getBlocks().isEmpty()) {
 			syntaxCheckContainer.setVisibility(View.GONE);
 			return;
 		}
 		
-		// Use yq to get the build config, same as showSourceCode()
 		yq yq = new yq(this, scId);
 		yq.a(jC.c(scId), jC.b(scId), jC.a(scId));
 		
-		Executors.newSingleThreadExecutor().execute(() -> {
+		syntaxExecutor.execute(() -> {
 			LogicSyntaxChecker.SyntaxResult result = LogicSyntaxChecker.check(
 			M.getActivityName(),
 			yq.N,
@@ -2577,6 +2600,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 			);
 			
 			runOnUiThread(() -> {
+				if (isFinishing() || isDestroyed()) return;
 				syntaxCheckContainer.setVisibility(View.VISIBLE);
 				syntaxCheckContainer.setTag(result);
 				if (result.isValid) {
@@ -2593,6 +2617,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 			});
 		});
 	}
+	
 	
 	public void t() {
 		fa = ObjectAnimator.ofFloat(O, View.TRANSLATION_X, 0.0f);
@@ -2651,31 +2676,38 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	
 	public static class LoadEventBlocksTask {
 		private final WeakReference<LogicEditorActivity> activityRef;
-		private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 		
 		public LoadEventBlocksTask(LogicEditorActivity activity) {
 			activityRef = new WeakReference<>(activity);
 		}
 		
 		public void execute() {
-			getActivity().k();
-			executorService.execute(this::doInBackground);
-		}
-		
-		private void doInBackground() {
 			LogicEditorActivity activity = getActivity();
-			if (activity != null) {
-				activity.loadEventBlocks();
-				activity.runOnUiThread(() -> {
-					activity.h();
-				});
-			}
+			if (activity == null) return;
+			
+			activity.k();
+			ExecutorService executor = Executors.newSingleThreadExecutor();
+			executor.execute(() -> {
+				try {
+					LogicEditorActivity act = getActivity();
+					if (act != null) {
+						act.loadEventBlocks();
+						act.runOnUiThread(() -> {
+							if (act.isFinishing() || act.isDestroyed()) return;
+							act.h();
+						});
+					}
+				} finally {
+					executor.shutdown(); // إغلاق الـ Thread فور الانتهاء
+				}
+			});
 		}
 		
 		private LogicEditorActivity getActivity() {
 			return activityRef.get();
 		}
 	}
+	
 	
 	public class ImagePickerAdapter extends RecyclerView.Adapter<ImagePickerAdapter.ViewHolder> {
 		
@@ -2777,15 +2809,15 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	}
 	
 	private String buildExistingEventCode() {
-        try {
-            yq yqExporter = new yq(this, scId);
-            yqExporter.a(jC.c(scId), jC.b(scId), jC.a(scId));
-            String code = new Fx(M.getActivityName(), yqExporter.N, o.getBlocks(), isViewBindingEnabled).a();
-            return code == null ? "" : code.trim();
-        } catch (Exception e) {
-            return "";
-        }
-    }
+		try {
+			yq yqExporter = new yq(this, scId);
+			yqExporter.a(jC.c(scId), jC.b(scId), jC.a(scId));
+			String code = new Fx(M.getActivityName(), yqExporter.N, o.getBlocks(), isViewBindingEnabled).a();
+			return code == null ? "" : code.trim();
+		} catch (Exception e) {
+			return "";
+		}
+	}
 	
 	/**
 * يعرض حوار إدخال حيث يكتب المستخدم وصف ما يريد توليده، ثم يبدأ التوليد.
@@ -2946,14 +2978,24 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 				});
 			} catch (Exception e) {
 				try { if (crashlytics != null) crashlytics.recordException(e); } catch (Exception ignored) {}
+				// إضافة التحقق من حالة الـ Activity قبل إغلاق ProgressDialog
 				runOnUiThread(() -> {
-					try {
-						if (progress.isShowing()) progress.dismiss();
-					} catch (Exception ignored) {}
-					Toast.makeText(this,
-					"فشل توليد الكود: " + (e.getMessage() == null ? "خطأ" : e.getMessage()),
-					Toast.LENGTH_LONG).show();
+					if (!isFinishing() && !isDestroyed() && progress.isShowing()) {
+						try {
+							progress.dismiss();
+						} catch (Exception ignored) {}
+					}
+					if (code == null || code.trim().isEmpty()) {
+						Toast.makeText(this, "لم يُحصل على نتيجة من المزوّد.", Toast.LENGTH_SHORT).show();
+						return;
+					}
+					if (!isFinishing() && !isDestroyed()) {
+						showGeneratedCodeDialog(code);
+					}
 				});
+				
+				
+				
 			}
 		});
 	}
