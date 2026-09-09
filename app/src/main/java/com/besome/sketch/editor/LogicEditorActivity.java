@@ -190,8 +190,6 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	private final Handler syntaxCheckHandler = new Handler();
 	private final Runnable syntaxCheckRunnable = this::runSyntaxCheck;
 	private SvgUtils svgUtils;
-	// menu id for AI generate action
-	private static final int MENU_AI_GENERATE_ID = 0x7f1001; // قيمة ثابتة فريدة
 	
 	// Executor لخيوط الـ AI
 	private final ExecutorService aiExecutor = Executors.newSingleThreadExecutor();
@@ -2042,9 +2040,6 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		getMenuInflater().inflate(R.menu.logic_menu, menu);
 		menu.findItem(R.id.menu_logic_redo).setEnabled(M != null && bC.d(scId).g(s()));
 		menu.findItem(R.id.menu_logic_undo).setEnabled(M != null && bC.d(scId).h(s()));
-		// أضف عنصر القائمة الخاص بـ AI برمجياً
-		MenuItem aiItem = menu.add(Menu.NONE, MENU_AI_GENERATE_ID, Menu.NONE, "Generate with AI");
-		aiItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 		return true;
 	}
 	
@@ -2060,10 +2055,17 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		} else if (itemId == R.id.menu_logic_undo) {
 			undo();
 		} else if (itemId == R.id.menu_logic_showsource) {
-			showSourceCode();
-		} else if (itemId == MENU_AI_GENERATE_ID) {
-			// افتح نافذة لإدخال وصف ما تريد توليده
-			showAiCodePromptDialog();
+			 new MaterialAlertDialogBuilder(this)
+                    .setTitle("Source Code")
+                    .setItems(new CharSequence[]{
+                            "View Source Code",
+                            "Generate with AI"
+                    }, (dialog, which) -> {
+                        if (which == 0)      showSourceCode();
+                        else if (which == 1) showAiCodePromptDialog();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
 		}
 		
 		return super.onOptionsItemSelected(menuItem);
@@ -2120,16 +2122,6 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		}
 	}
 	
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		try {
-			if (aiExecutor != null && !aiExecutor.isShutdown()) {
-				aiExecutor.shutdownNow();
-			}
-		} catch (Exception ignored) {
-		}
-	}
 	
 	@Override
 	public void onSaveInstanceState(Bundle bundle) {
@@ -2941,7 +2933,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		b.setTitle("Generated Java Code");
 		b.setMessage(code);
 		b.setPositiveButton("Insert / Copy to editor", (dialog, which) -> {
-			insertGeneratedCodeIntoEditor(code);
+			openCodeInViewerWithActions(code);
 		});
 		b.setNeutralButton("Copy", (dialog, which) -> {
 			ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
