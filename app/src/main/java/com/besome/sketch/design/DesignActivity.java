@@ -698,6 +698,11 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             saveProject();
         } else if (itemId == R.id.design_option_menu_ai_generate_layout) {
             launchAiGenerateLayout();
+        } else if (itemId == R.id.design_option_menu_search) {
+            if (eventTabAdapter != null) {
+                eventTabAdapter.toggleSearchBar();
+            }
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
