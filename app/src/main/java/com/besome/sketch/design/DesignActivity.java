@@ -160,6 +160,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     private int currentTabNumber;
     private CustomViewPager viewPager;
     private CoordinatorLayout coordinatorLayout;
+    private Toolbar toolbar;
     private DrawerLayout drawer;
     private yq q;
     private DB r;
@@ -501,7 +502,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
         r = new DB(getApplicationContext(), "P1");
         t = new DB(getApplicationContext(), "P12");
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         toolbar.setSubtitle(sc_id);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
