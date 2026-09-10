@@ -2112,9 +2112,10 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     private void handleSearchIconClick() {
         if (currentTabNumber == 1) {
             showEventSearchPopup();
-        } else if (currentTabNumber == 3) {
+       
+        } else {
             openGlobalSearch();
-        } 
+        }
     }
     
     
