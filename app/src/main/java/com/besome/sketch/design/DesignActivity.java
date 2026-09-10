@@ -148,6 +148,7 @@ import pro.sketchware.utility.apk.ApkSignatures;
 import com.besome.sketch.beans.HistoryViewBean;
 import pro.sketchware.managers.inject.InjectRootLayoutManager;
 import pro.sketchware.tools.ViewBeanParser;
+import mod.sketchlibx.search.GlobalSearchDialog;
 import pro.sketchware.utility.TranslationFunction;
 
 public class DesignActivity extends BaseAppCompatActivity implements View.OnClickListener {
@@ -576,6 +577,10 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             transcribeToMaterial3();
             return true;
         });
+        bottomMenu.add(Menu.NONE, 10, Menu.NONE, Helper.getResString(R.string.ai_layout_generator)).setOnMenuItemClickListener(item -> {
+            launchAiGenerateLayout();
+            return true;
+        });
         bottomPopupMenu.setOnDismissListener(menu -> btnOptions.setChecked(false));
 
         xmlLayoutOrientation = findViewById(R.id.img_orientation);
@@ -680,10 +685,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.design_menu, menu);
-        MenuItem searchItem = menu.findItem(R.id.design_option_menu_search);
-        if (searchItem != null) {
-            searchItem.setVisible(currentTabNumber == 1);
-        }
         return true;
     }
 
@@ -696,15 +697,10 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             }
         } else if (itemId == R.id.design_option_menu_title_save_project) {
             saveProject();
-        } else if (itemId == R.id.design_option_menu_ai_generate_layout) {
-            launchAiGenerateLayout();
         } else if (itemId == R.id.design_option_menu_search) {
-            if (eventTabAdapter != null) {
-                eventTabAdapter.toggleSearchBar();
-            }
+            handleSearchIconClick();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -2109,6 +2105,102 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             } else {
                 return new StringsTabFragment();
             }
+        }
+    }
+    
+    private void handleSearchIconClick() {
+        if (currentTabNumber == 1) {
+            showEventSearchPopup();
+        } else if (currentTabNumber == 3) {
+            openGlobalSearch();
+        } 
+    }
+    
+    
+    private void openGlobalSearch() {
+        GlobalSearchDialog dialog = new GlobalSearchDialog(sc_id, this);
+        dialog.show(getSupportFragmentManager(), "GlobalSearch");
+    }
+    
+    private void showEventSearchPopup() {
+        View anchor = toolbar.findViewById(R.id.design_option_menu_search);
+        if (anchor == null) anchor = toolbar;
+
+        PopupMenu searchPopupMenu = new PopupMenu(this, anchor);
+        searchPopupMenu.getMenu().add(Menu.NONE, 1, Menu.NONE, "Global Search");
+        searchPopupMenu.getMenu().add(Menu.NONE, 2, Menu.NONE, Helper.getResString(R.string.logic_search_events));
+        searchPopupMenu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == 1) {
+                openGlobalSearch();
+            } else if (item.getItemId() == 2) {
+                if (eventTabAdapter != null) eventTabAdapter.toggleSearchBar();
+            }
+            return true;
+        });
+        searchPopupMenu.show();
+    }
+    
+    
+    public void handleSearchResult(mod.sketchlibx.search.SearchResult result) {
+        ProjectFileBean fileBean = jC.b(sc_id).b(result.fileName);
+        if (fileBean == null) {
+            fileBean = jC.b(sc_id).a(result.fileName);
+        }
+        
+        if (fileBean != null) {
+            k(); // Loading dialog SHOW
+            
+            boolean isDifferentFile = (this.projectFile == null) || 
+                (!this.projectFile.getJavaName().equals(fileBean.getJavaName()));
+
+            this.projectFile = fileBean;
+            refreshFileSelector();
+            viewPager.setCurrentItem(result.tabIndex, false);
+            refresh();
+            
+            int delayTime = isDifferentFile ? 850 : 350;
+
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                try {
+                    if (result.category.equals("View") && result.targetId != null) {
+                        
+                        if (result.title.contains("(Drawer")) {
+                            if (!drawer.isDrawerOpen(androidx.core.view.GravityCompat.END)) {
+                                drawer.openDrawer(androidx.core.view.GravityCompat.END);
+                            }
+                        }
+                        
+                        if (viewTabAdapter != null) {
+                            viewTabAdapter.showHidePropertyView(true);
+                        }
+                        
+                        com.besome.sketch.editor.view.ViewProperty viewProperty = findViewById(R.id.view_property);
+                        if (viewProperty != null) {
+                            viewProperty.setVisibility(View.VISIBLE);
+                            viewProperty.a(result.targetId); // Attach view properties
+                        }
+                        
+                    } else if (result.category.equals("Logic Block") && result.targetId != null && result.eventName != null) {
+                        Intent intent = new Intent(DesignActivity.this, com.besome.sketch.editor.LogicEditorActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        intent.putExtra("sc_id", sc_id);
+                        intent.putExtra("id", result.targetId);
+                        intent.putExtra("event", result.eventName);
+                        intent.putExtra("project_file", projectFile);
+                        intent.putExtra("event_text", result.eventName);
+                        startActivity(intent);
+                    } else if (result.category.equals("Component") || result.category.equals("Variable") || result.category.equals("List")) {
+                        pro.sketchware.utility.SketchwareUtil.toast("Switched to " + result.category + " tab");
+                    }
+                } catch (Exception e) {
+                    Log.e("DeepLink", "Failed to resolve deep link", e);
+                } finally {
+                    h(); // Loading Dialog HIDE
+                }
+            }, delayTime);
+
+        } else {
+            pro.sketchware.utility.SketchwareUtil.toastError("Could not find file: " + result.fileName);
         }
     }
 }

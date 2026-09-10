@@ -7,7 +7,7 @@
         android:orderInCategory="100"
         android:title="@string/logic_search_events"
         android:visible="false"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/design_option_menu_title_save_project"
@@ -18,16 +18,9 @@
 
 
     <item
-        android:id="@+id/design_option_menu_ai_generate_layout"
-        android:icon="@drawable/icon_gemini_theme"
-        android:orderInCategory="120"
-        android:title="@string/ai_layout_generator_menu_title"
-        app:showAsAction="always" />
-
-    <item
         android:id="@+id/design_actionbar_titleopen_drawer"
         android:icon="@drawable/selector_ic_more_tinted_24"
-        android:orderInCategory="110"
+        android:orderInCategory="120"
         android:title="@string/menu_design_drawer"
         app:showAsAction="always" />
 
