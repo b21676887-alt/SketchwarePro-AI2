@@ -19,7 +19,7 @@
 
     <item
         android:id="@+id/design_option_menu_ai_generate_layout"
-        android:icon="@drawable/ic_mtrl_code"
+        android:icon="@drawable/icon_gemini_theme"
         android:orderInCategory="120"
         android:title="@string/ai_layout_generator_menu_title"
         app:showAsAction="always" />
