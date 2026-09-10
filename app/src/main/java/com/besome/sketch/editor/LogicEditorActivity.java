@@ -145,6 +145,9 @@ import android.content.ClipboardManager;
 import pro.sketchware.ia.LayoutGeneratorModelSelector;
 import pro.sketchware.ai.config.DeviceLanguage;
 import pro.sketchware.network.AiProviderService;
+import pro.sketchware.network.AiRequestHandle;
+import pro.sketchware.ia.LogicGenTask;
+import android.widget.ProgressBar;
 
 
 @SuppressLint({"ClickableViewAccessibility", "RtlHardcoded", "SetTextI18n", "DefaultLocale"})
@@ -197,6 +200,8 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	private final ExecutorService aiExecutor = Executors.newSingleThreadExecutor();
 	// تعديل runSyntaxCheck لاستخدام خيط معالجة آمن وتفادي إنشائه باستمرار
 	private final ExecutorService syntaxExecutor = Executors.newSingleThreadExecutor();
+	// يحتفظ بمقبض الطلب الجاري حتى نتمكن من إلغائه
+	private volatile AiRequestHandle activeAiRequest;
 	
 	
 	public static ArrayList<String> getAllJavaFileNames(String projectScId) {
@@ -2142,8 +2147,8 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		if (syntaxExecutor != null && !syntaxExecutor.isShutdown()) {
 			syntaxExecutor.shutdownNow();
 		}
-		if (aiExecutor != null && !aiExecutor.isShutdown()) {
-			aiExecutor.shutdownNow();
+		if (activeAiRequest != null) {
+			activeAiRequest.cancel();
 		}
 	}
 	
@@ -2888,134 +2893,73 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 * يطلب من نموذج AI توليد كود Java حسب الوصف (userIntent).
 * التنفيذ في خيط خلفي؛ عند النجاح يعرض حوار يسمح للمستخدم بنسخ/حفظ/إدراج الكود.
 */	
+	
 	public void generateCodeWithAi(String userIntent) {
 		if (userIntent == null || userIntent.trim().isEmpty()) {
 			Toast.makeText(this, "ادخل وصفًا لتوليد الكود.", Toast.LENGTH_SHORT).show();
 			return;
 		}
 		
-		final ProgressDialog progress = new ProgressDialog(this);
-		progress.setTitle("Generating code");
-		progress.setMessage("Please wait...");
-		progress.setCancelable(true);
-		progress.setCanceledOnTouchOutside(false);
-		progress.show();
 		String viewContext = buildViewContext();
 		String existingCode = buildExistingEventCode();
 		String activityName = M.getActivityName();
 		
-		aiExecutor.execute(() -> {
-			try {
-				// الحصول على النموذج/المزوّد الحالي
-				LayoutGeneratorModelSelector.SelectedModel selectedModel =
-				LayoutGeneratorModelSelector.getCurrentChatModel(getApplicationContext());
-				
-				String providerId = selectedModel == null ? "groq" : selectedModel.providerId;
-				String modelName = selectedModel == null ? "llama-3.1-8b-instant" : selectedModel.modelName;
-				
-				// system prompt: اجعل الموديل يطبع كوداً فقط
-				String devicelang = DeviceLanguage.responseInstruction();
-				
-				
-				
-				
-				StringBuilder systemPrompt = new StringBuilder();
-				systemPrompt.append("You are generating Java logic for the \"").append(eventName)
-				.append("\" event of activity \"").append(activityName)
-				.append("\" inside a Sketchware Neo Android project (a visual block-based app builder that also supports raw Java). ");
-				systemPrompt.append("Reply with ONLY plain Java statements that belong inside that event's body - ")
-				.append("no method signature, no class wrapper, no imports, no markdown code fences, no explanation, no comments. ");
-				systemPrompt.append("Reference views using the pattern binding.viewId (e.g. binding.myButton.setText(\"Hi\")), ")
-				.append("which is how this project's generated activities access views.");
-				
-				if (!TextUtils.isEmpty(viewContext)) {
-					systemPrompt.append("\n\nThe current layout has exactly these views (id: type). Use ONLY these ids via binding.<id> - never invent an id that isn't listed here:\n")
-					.append(viewContext);
-				} else {
-					systemPrompt.append("\n\nNo views were found in the current layout, so avoid referencing any binding.<id> unless the user's request clearly implies a view that should exist.");
-				}
-				
-				if (!TextUtils.isEmpty(existingCode)) {
-					systemPrompt.append("\n\nThis event ALREADY contains the following logic:\n")
-					.append(existingCode)
-					.append("\n\nThe user's request below is asking you to modify or upgrade this existing logic, not replace it blindly. ")
-					.append("Keep everything that still makes sense, change only what the request asks for, and return the COMPLETE updated body (not just the new/changed lines, not a diff).");
-				} else {
-					systemPrompt.append("\n\nThis event currently has no logic yet - write it from scratch based on the request below.");
-				}
-				
-				systemPrompt.append(" Keep the code idiomatic Android/Java, use standard APIs, and prefer simple direct statements ")
-				.append("over unnecessary helper methods so more of it can be represented as visual blocks.")
-				.append(devicelang);
-				
-				// user prompt
-				String userPrompt = "User intent:\n" + userIntent + "\n\n"
-				+ "Constraints:\n"
-				+ "- Prefer Android-compatible Java (API level compatible with Sketchware projects).\n"
-				+ "- Avoid external libraries unless necessary; if used, include required imports inside the code.\n"
-				+ "- Return only Java code (no markdown, no numbered list, no commentary).\n";
-				
-				// لا صور عند توليد الكود
-				java.util.List<String> images = new java.util.ArrayList<>();
-				
-				// استدعاء مزود الـ AI (مزامن)
-				String rawResponse = AiProviderService.getInstance().sendTextMessage(
-				providerId, modelName, systemPrompt.toString(), userPrompt, images
-				);
-				
-				final String code = stripFences(rawResponse);
-				
-				runOnUiThread(() -> {
-					try {
-						if (progress.isShowing()) progress.dismiss();
-					} catch (Exception ignored) {}
-					
-					if (code == null || code.trim().isEmpty()) {
-						Toast.makeText(this, "لم يُحصل على نتيجة من المزوّد.", Toast.LENGTH_SHORT).show();
-						return;
-					}
-					showGeneratedCodeDialog(code);
-				});
-			} catch (Exception e) {
-				try { if (crashlytics != null) crashlytics.recordException(e); } catch (Exception ignored) {}
-				runOnUiThread(() -> {
-					try {
-						if (progress.isShowing()) progress.dismiss();
-					} catch (Exception ignored) {}
-					Toast.makeText(this,
-					"فشل توليد الكود: " + (e.getMessage() == null ? "خطأ" : e.getMessage()),
-					Toast.LENGTH_LONG).show();
-				});
-			}
-		});
-	}
-	
-	/** يزيل fences الثلاثية ``` أو ```java إن وُجدت، ويقص المساحات الزائدة */
-	private static String stripFences(String value) {
-		if (value == null) return "";
-		String s = value.trim();
+		// الآن استعمل LogicGenTask
+		LogicGenTask task = new LogicGenTask(getApplicationContext(), userIntent, eventName, activityName, viewContext, existingCode);
 		
-		// Standard triple-backtick fences with optional language identifier
-		if (s.startsWith("```")) {
-			int firstNewline = s.indexOf('\n');
-			int lastFence = s.lastIndexOf("```");
-			if (firstNewline >= 0 && lastFence > firstNewline) {
-				s = s.substring(firstNewline + 1, lastFence).trim();
-				return s;
+		// بناء Material dialog مع ProgressBar (مثال: استخدم layout ai_progress_dialog.xml كما اقترحت سابقاً)
+		MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(this);
+		dialogBuilder.setTitle("Generating code");
+		View progressView = LayoutInflater.from(this).inflate(R.layout.ai_progress_dialog, null, false);
+		dialogBuilder.setView(progressView);
+		dialogBuilder.setCancelable(true);
+		final android.app.AlertDialog progressDialog = dialogBuilder.create();
+		progressDialog.show();
+		
+		// ابدأ المهمة وخذ الـ handle
+		activeAiRequest = task.start(new AiProviderService.StreamListener() {
+			@Override
+			public void onContent(String delta) { }
+			
+			@Override
+			public void onReasoning(String delta) { }
+			
+			@Override
+			public void onToolCall(String name, String arguments, String id) { }
+			
+			@Override
+			public void onFinalMessage(String fullContent, String fullReasoning) {
+				try { progressDialog.dismiss(); } catch (Exception ignored) {}
+				String code = fullContent == null ? "" : fullContent;
+				if (code.trim().isEmpty()) {
+					Toast.makeText(LogicEditorActivity.this, "لم يُحصل على نتيجة من المزوّد.", Toast.LENGTH_SHORT).show();
+					return;
+				}
+				openCodeInViewerWithActions(code);
 			}
 			
-			// If fences present but not in the normal form, strip leading/trailing backticks permissively
-			s = s.replaceAll("^```+", "").replaceAll("```+$", "").trim();
-			if (!s.isEmpty()) return s;
-		}
+			@Override
+			public void onDebug(String message) { /* optional */ }
+			
+			@Override
+			public void onError(String message, Throwable t) {
+				try { progressDialog.dismiss(); } catch (Exception ignored) {}
+				if (t != null) {
+					Toast.makeText(LogicEditorActivity.this, "فشل توليد الكود: " + t.getMessage(), Toast.LENGTH_LONG).show();
+				} else {
+					Toast.makeText(LogicEditorActivity.this, "Request error: " + message, Toast.LENGTH_LONG).show();
+				}
+			}
+		});
 		
-		// Also handle single-line inline fences (rare)
-		if (s.startsWith("`") && s.endsWith("`") && s.length() > 2) {
-			return s.substring(1, s.length() - 1).trim();
-		}
+		// ربط إلغاء الحوار بإلغاء الطلب
+		progressDialog.setOnCancelListener(d -> {
+			if (activeAiRequest != null) activeAiRequest.cancel();
+		});
+		progressDialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE); // optional if you added button
 		
-		return s;
 	}
+	
 	
 	/** حوار بسيط لعرض الكود مع خيارات: نسخ، إدراج (نسخ للحافظة) وحفظ ملف */
 	private void showGeneratedCodeDialog(String code) {
