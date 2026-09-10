@@ -146,6 +146,8 @@ import pro.sketchware.network.AiProviderService;
 import pro.sketchware.network.AiRequestHandle;
 import pro.sketchware.ia.LogicGenTask;
 import android.widget.ProgressBar;
+//classes BlocksConverter
+import mod.sketchlibx.project.editor.BlocksConverter;
 
 
 @SuppressLint({"ClickableViewAccessibility", "RtlHardcoded", "SetTextI18n", "DefaultLocale"})
@@ -2073,10 +2075,12 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 			.setTitle("Source Code")
 			.setItems(new CharSequence[]{
 				"View Source Code",
+				"Code to Blocks",
 				"Generate with AI"
 			}, (dialog, which) -> {
 				if (which == 0)      showSourceCode();
-				else if (which == 1) showAiCodePromptDialog();
+				else if (which == 1) showCodeToBlocksDialog();
+				else                  showAiCodePromptDialog();
 			})
 			.setNegativeButton("Cancel", null)
 			.show();
@@ -2931,7 +2935,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 					Toast.makeText(LogicEditorActivity.this, "لم يُحصل على نتيجة من المزوّد.", Toast.LENGTH_SHORT).show();
 					return;
 				}
-				openCodeInViewerWithActions(code);
+				runConversion(code, () -> BlocksConverter.convert(code));
 			}
 			
 			@Override
@@ -3014,5 +3018,128 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 			try { if (crashlytics != null) crashlytics.recordException(e); } catch (Exception ignored) {}
 			return false;
 		}
+	}
+	
+	private void showCodeToBlocksDialog() {
+		int dp24 = (int) (24 * getResources().getDisplayMetrics().density);
+		int dp16 = (int) (16 * getResources().getDisplayMetrics().density);
+		int dp8 = (int) (8 * getResources().getDisplayMetrics().density);
+		
+		LinearLayout root = new LinearLayout(this);
+		root.setOrientation(LinearLayout.VERTICAL);
+		root.setPadding(dp24, dp24, dp24, dp8);
+		
+		TextView title = new TextView(this);
+		title.setText("Code to Blocks");
+		title.setTextSize(20);
+		title.setTypeface(null, android.graphics.Typeface.BOLD);
+		title.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurface));
+		root.addView(title);
+		
+		TextView subtitle = new TextView(this);
+		subtitle.setText("Paste your Java snippet below. Supported syntax (loops, variables, APIs) will become blocks. Unrecognized code is wrapped safely.");
+		subtitle.setTextSize(14);
+		subtitle.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant));
+		LinearLayout.LayoutParams subParams = new LinearLayout.LayoutParams(-1, -2);
+		subParams.setMargins(0, dp8, 0, dp16);
+		subtitle.setLayoutParams(subParams);
+		root.addView(subtitle);
+		
+		com.google.android.material.card.MaterialCardView card = new com.google.android.material.card.MaterialCardView(this);
+		card.setCardElevation(0);
+		card.setRadius(dp8);
+		card.setStrokeWidth((int)(1 * getResources().getDisplayMetrics().density));
+		card.setStrokeColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOutlineVariant));
+		card.setCardBackgroundColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorSurfaceVariant));
+		
+		EditText editText = new EditText(this);
+		editText.setHint("public void myLogic() {\n    // Code here\n}");
+		editText.setBackground(null); // Transparent background
+		editText.setPadding(dp16, dp16, dp16, dp16);
+		editText.setInputType(android.text.InputType.TYPE_CLASS_TEXT 
+		| android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE 
+		| android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+		editText.setMinLines(8);
+		editText.setMaxLines(18);
+		editText.setGravity(android.view.Gravity.TOP | android.view.Gravity.START);
+		editText.setVerticalScrollBarEnabled(true);
+		editText.setTypeface(android.graphics.Typeface.MONOSPACE);
+		editText.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurface));
+		editText.setHintTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOutline));
+		
+		card.addView(editText, new ViewGroup.LayoutParams(-1, -2));
+		root.addView(card, new LinearLayout.LayoutParams(-1, -2));
+		
+		new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+		.setView(root)
+		.setNegativeButton("Cancel", null)
+		.setPositiveButton("Convert", (dialog, which) -> {
+			String code = editText.getText() == null ? "" : editText.getText().toString().trim();
+			
+			if (code.isEmpty()) {
+				pro.sketchware.utility.SketchwareUtil.toastError("Oops! You forgot to paste the code.");
+				return;
+			} else {
+				runConversion(code, () -> BlocksConverter.convert(code));
+			}
+			
+			
+			
+		})
+		.show();
+	}
+	
+	private void runConversion(String code, java.util.function.Supplier<BlocksConverter.ConversionResult> converterCall) {
+		BlocksConverter.ConversionResult result;
+		try {
+			result = converterCall.get();
+		} catch (Throwable t) {
+			pro.sketchware.utility.SketchwareUtil.toastError("Converter failed: " + t.getMessage());
+			return;
+		}
+		
+		if (result == null || result.error != null) {
+			pro.sketchware.utility.SketchwareUtil.toastError("Couldn't convert the code: " + (result == null ? "no result" : result.error));
+			return;
+		}
+		
+		int total    = result.blocks.size();
+		int rec      = result.recognizedCount;
+		int fallback = result.fallbackCount;
+		
+		String blockWord = total == 1 ? "block" : "blocks";
+		String msg = "Here's what we found:\n\n"
+		+ "✅  " + rec + " native " + (rec == 1 ? "block" : "blocks") + "\n"
+		+ "⚠️  " + fallback + " \"Add Source Directly\" " + (fallback == 1 ? "block" : "blocks") + "\n\n"
+		+ "Ready to add " + total + " " + blockWord + " to your project?";
+		
+		new MaterialAlertDialogBuilder(this)
+		.setTitle("Ready to Insert?")
+		.setMessage(msg)
+		.setNegativeButton("Wait, go back", null)
+		.setPositiveButton("Yes, insert them", (d2, w2) -> insertConvertedBlocks(result.blocks))
+		.show();
+	}
+	
+	private void insertConvertedBlocks(java.util.ArrayList<com.besome.sketch.beans.BlockBean> blocks) {
+		if (blocks == null || blocks.isEmpty()) {
+			pro.sketchware.utility.SketchwareUtil.toastError("No blocks to insert.");
+			return;
+		}
+		int[] oLoc = new int[2];
+		o.getLocationOnScreen(oLoc);
+		int insertX = oLoc[0] + pro.sketchware.utility.SketchwareUtil.dpToPx(16);
+		int insertY = oLoc[1] + pro.sketchware.utility.SketchwareUtil.dpToPx(80);
+		
+		java.util.ArrayList<com.besome.sketch.beans.BlockBean> inserted =
+		a(blocks, insertX, insertY, true);
+		
+		bC.d(scId).a(s(), inserted,
+		insertX - oLoc[0], insertY - oLoc[1], null, null);
+		
+		C();
+		
+		pro.sketchware.utility.SketchwareUtil.toast(
+		inserted.size() + " block" + (inserted.size() != 1 ? "s" : "") + " inserted.");
 	}
 }
