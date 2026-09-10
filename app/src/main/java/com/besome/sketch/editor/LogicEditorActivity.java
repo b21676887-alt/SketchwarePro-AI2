@@ -196,8 +196,6 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	private final Runnable syntaxCheckRunnable = this::runSyntaxCheck;
 	private SvgUtils svgUtils;
 	
-	// Executor لخيوط الـ AI
-	private final ExecutorService aiExecutor = Executors.newSingleThreadExecutor();
 	// تعديل runSyntaxCheck لاستخدام خيط معالجة آمن وتفادي إنشائه باستمرار
 	private final ExecutorService syntaxExecutor = Executors.newSingleThreadExecutor();
 	// يحتفظ بمقبض الطلب الجاري حتى نتمكن من إلغائه
@@ -2913,7 +2911,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		View progressView = LayoutInflater.from(this).inflate(R.layout.ai_progress_dialog, null, false);
 		dialogBuilder.setView(progressView);
 		dialogBuilder.setCancelable(true);
-		final android.app.AlertDialog progressDialog = dialogBuilder.create();
+		final androidx.appcompat.app.AlertDialog progressDialog = dialogBuilder.create();
 		progressDialog.show();
 		
 		// ابدأ المهمة وخذ الـ handle
