@@ -3705,13 +3705,7 @@
     <string name="editor_select_language_title">اختر اللغة</string>
 
     
-    <string name="proguard_select_libraries_title">اختر المكتبات المحلية</string>
-
-    
-
-    
-
-    
+    <string name="proguard_select_libraries_title">اختر المكتبات المحلية</string>        
     <string name="editor_preview_statusbar">شريط الحالة (StatusBar)</string>
     <string name="editor_preview_toolbar">شريط الأدوات (Toolbar)</string>
     <string name="editor_preview_drawer">القائمة الجانبية (Drawer)</string>
@@ -3721,20 +3715,62 @@
     <string name="editor_preview_tab3">التبويب 3</string>
     <string name="editor_preview_webview">عَرَض الويب (WebView)</string>
     <string name="editor_preview_spinner">القائمة المنسدلة (Spinner)</string>
-    <string name="editor_preview_mapview">عرض الخريطة (MapView)</string>
-
-    
-    <string name="view_title_edit_format">تعديل %s</string>
-
-    
-
-    
-    <string name="widgets_select_json_title">اختر ملفات عناصر الواجهة بصيغة .json</string>
-
-    
+    <string name="editor_preview_mapview">عرض الخريطة (MapView)</string>    
+    <string name="view_title_edit_format">تعديل %s</string>        
+    <string name="widgets_select_json_title">اختر ملفات عناصر الواجهة بصيغة .json</string>    
     <string name="array_select_type_title">اختر نوع المصفوفة</string>
     <string name="item_title_create">إنشاء عنصر جديد</string>
     <string name="item_title_edit">تعديل العنصر</string>
+    <string name="global_search_title">بحث شامل</string>
+    <string name="global_search_all">الكل</string>
+    <string name="global_search_Layouts">العرض</string>
+    <string name="global_search_Logic">منطق</string>
+    <string name="global_search_Components">مكونات</string>
+    <string name="global_search_searchproject">مشروع البحث</string>
+    <string name="global_search_noresultsfound">لم يتم العثور على نتائج</string>
+    <string name="global_search_searching_project">جارٍ البحث في المشروع...</string>
+    <!-- Source Code Dialog Options -->
+    <string name="title_source_code">الشيفرة المصدرية</string>
+    <string name="option_view_source_code">عرض الشيفرة المصدرية</string>
+    <string name="option_code_to_blocks">تحويل الشيفرة إلى بلوكات</string>
+    <string name="option_generate_with_ai">توليد باستخدام الذكاء الاصطناعي</string>
 
+    <!-- AI Generation Dialog & Process -->
+    <string name="ai_code_subtitle_format">صف ما يجب أن يفعله الحدث \"%1$s\". سيقوم الذكاء الاصطناعي بكتابة المنطق وتحويله إلى بلوكات.</string>
+    <string name="ai_code_hint">مثال: إظهار رسالة توست تقول مرحباً عند التشغيل</string>
+
+    <string name="ai_toast_enter_description">يرجى إدخال وصف لما يجب أن يفعله هذا الحدث أولاً.</string>
+    <string name="ai_toast_enter_description_alt">أدخل وصفاً لتوليد الكود.</string>
+    <string name="ai_toast_no_result">لم يتم الحصول على نتيجة من المزوّد.</string>
+    <string name="ai_toast_generation_failed">فشل توليد الكود: %1$s</string>
+    <string name="ai_toast_request_error">خطأ في الطلب: %1$s</string>
+    <string name="ai_dialog_generating">جاري توليد الكود</string>
+
+    <!-- Conversion & Blocks Process -->
+    <string name="converter_error_failed">فشل المحول: %1$s</string>
+    <string name="converter_error_could_not_convert">تعذر تحويل الكود: %1$s</string>
+    <string name="converter_no_result">لا توجد نتيجة</string>
+
+    <string name="word_block">بلوك</string>
+    <string name="word_blocks">بلوكات</string>
+
+    <string name="conversion_summary_msg">إليك ما تم العثور عليه:\n\n✅  %1$d %2$s أصلي\n⚠️  %3$d %4$s \"إضافة المصدر مباشرة\"\n\nهل أنت جاهز لإضافة %5$d %6$s إلى مشروعك؟</string>
+    <string name="conversion_dialog_title">جاهز للإدراج؟</string>
+    <string name="conversion_btn_go_back">انتظر، العودة للخلف</string>
+    <string name="conversion_btn_insert">نعم، قم بإدراجها</string>
+
+    <string name="blocks_toast_no_blocks">لا توجد بلوكات للإدراج.</string>
+    <string name="blocks_toast_inserted">تم إدراج %1$d %2$s.</string>
+
+    <!-- Code To Blocks Dialog -->
+    <string name="code_to_blocks_title">تحويل الكود إلى بلوكات</string>
+    <string name="code_to_blocks_subtitle">الصق كود Java أدناه. الصيغ المدعومة (الحلقات، التغييرات، APIs) ستتحول إلى بلوكات. الكود غير التعرف عليه سيتم تغليفه بأمان.</string>
+    <string name="code_to_blocks_hint">public void myLogic() {\n    // الكود هنا\n}</string>
+    <string name="code_to_blocks_error_empty">عذراً! لقد نسيت لصق الكود.</string>
+
+    <!-- Common UI Actions -->
+    <string name="btn_cancel">إلغاء</string>
+    <string name="btn_generate">توليد</string>
+    <string name="btn_convert">تحويل</string>
 
 </resources>

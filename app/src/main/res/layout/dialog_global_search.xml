@@ -34,7 +34,7 @@
                     android:id="@+id/title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Global Search"
+                    android:text="@string/global_search_title"
                     android:textAppearance="?attr/textAppearanceHeadlineSmall"
                     android:textColor="?attr/colorOnSurface"
                     android:textStyle="bold" />
@@ -87,28 +87,28 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:checked="true"
-                        android:text="All" />
+                        android:text="@string/global_search_all" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_views"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Layouts" />
+                        android:text="@string/global_search_Layouts" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_logic"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Logic" />
+                        android:text="@string/global_search_Logic" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_components"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Components" />
+                        android:text="@string/global_search_Components" />
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
 
@@ -150,7 +150,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Search Project"
+                    android:text="@string/global_search_searchproject"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
@@ -176,7 +176,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="No results found"
+                    android:text="@string/global_search_noresultsfound"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorOnSurface" />
             </LinearLayout>
@@ -202,7 +202,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Searching project..."
+                    android:text="@string/global_search_searching_project"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorOnSurface" />
             </LinearLayout>

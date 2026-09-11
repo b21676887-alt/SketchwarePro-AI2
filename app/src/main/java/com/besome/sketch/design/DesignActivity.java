@@ -543,7 +543,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             new Thread(() -> {
                 FileUtil.deleteFile(q.projectMyscPath);
                 updateBottomMenu();
-                runOnUiThread(() -> SketchwareUtil.toast("Done cleaning temporary files!"));
+                runOnUiThread(() -> SketchwareUtil.toast(Helper.getResString(R.string.design_toast_clean_temp_done));
             }).start();
             return true;
         });
@@ -558,7 +558,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
         bottomMenu.add(Menu.NONE, 4, Menu.NONE, Helper.getResString(R.string.design_menu_install_apk)).setVisible(false).setOnMenuItemClickListener(item -> {
             if (FileUtil.isExistFile(q.finalToInstallApkPath)) {
                 installBuiltApk();
-            } else SketchwareUtil.toast("APK doesn't exist anymore");
+            } else SketchwareUtil.toast(Helper.getResString(R.string.design_error_apk_not_exist));
             return true;
         });
         bottomMenu.add(Menu.NONE, 6, Menu.NONE, Helper.getResString(R.string.design_menu_show_signatures)).setVisible(false).setOnMenuItemClickListener(item -> {
@@ -578,10 +578,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             transcribeToMaterial3();
             return true;
         });
-        bottomMenu.add(Menu.NONE, 10, Menu.NONE, Helper.getResString(R.string.ai_layout_generator)).setOnMenuItemClickListener(item -> {
-            launchAiGenerateLayout();
-            return true;
-        });
+        
         bottomPopupMenu.setOnDismissListener(menu -> btnOptions.setChecked(false));
 
         xmlLayoutOrientation = findViewById(R.id.img_orientation);
@@ -609,12 +606,16 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                 }
                 if (position == 0) {
                     bottomMenu.findItem(7).setVisible(true);
+                    bottomMenu.findItem(8).setVisible(true);
+                    bottomMenu.findItem(9).setVisible(true);
                     if (viewTabAdapter != null) {
                         viewTabAdapter.showHidePropertyView(true);
                         xmlLayoutOrientation.setImageResource(R.drawable.ic_mtrl_screen);
                     }
                 } else if (position == 1) {
                     bottomMenu.findItem(7).setVisible(false);
+                    bottomMenu.findItem(8).setVisible(false);
+                    bottomMenu.findItem(9).setVisible(false);
                     if (viewTabAdapter != null) {
                         xmlLayoutOrientation.setImageResource(R.drawable.ic_mtrl_code);
                         viewTabAdapter.showHidePropertyView(false);
@@ -624,6 +625,8 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                     }
                 } else if (position == 2) {
                     bottomMenu.findItem(7).setVisible(false);
+                    bottomMenu.findItem(8).setVisible(false);
+                    bottomMenu.findItem(9).setVisible(false);
                     if (viewTabAdapter != null) {
                         xmlLayoutOrientation.setImageResource(R.drawable.ic_mtrl_code);
                         viewTabAdapter.showHidePropertyView(false);
@@ -633,6 +636,8 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                     }
                 } else if (position == 3) {
                     bottomMenu.findItem(7).setVisible(false);
+                    bottomMenu.findItem(8).setVisible(false);
+                    bottomMenu.findItem(9).setVisible(false);
                     if (viewTabAdapter != null) {
                         xmlLayoutOrientation.setImageResource(R.drawable.ic_mtrl_code);
                         viewTabAdapter.showHidePropertyView(false);
@@ -1853,8 +1858,8 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
 
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(activity, CHANNEL_ID)
                         .setSmallIcon(R.drawable.ic_mtrl_code)
-                        .setContentTitle("Building project")
-                        .setContentText("Starting build...")
+                        .setContentTitle(R.string.notification_building_project)
+                        .setContentText(R.string.notification_starting_build)
                         .setOngoing(true)
                         .setProgress(0, 0, true)
                         .addAction(R.drawable.ic_cancel_white_96dp, "Cancel build", getCancelPendingIntent());
@@ -1870,7 +1875,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(activity, CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_mtrl_code)
-                    .setContentTitle("Building project")
+                    .setContentTitle(R.string.notification_building_project)
                     .setContentText(progress)
                     .setOngoing(true)
                     .setProgress(0, 0, true)
@@ -2129,7 +2134,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
         if (anchor == null) anchor = toolbar;
 
         PopupMenu searchPopupMenu = new PopupMenu(this, anchor);
-        searchPopupMenu.getMenu().add(Menu.NONE, 1, Menu.NONE, "Global Search");
+        searchPopupMenu.getMenu().add(Menu.NONE, 1, Menu.NONE, Helper.getResString(R.string.global_search_title));
         searchPopupMenu.getMenu().add(Menu.NONE, 2, Menu.NONE, Helper.getResString(R.string.logic_search_events));
         searchPopupMenu.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == 1) {

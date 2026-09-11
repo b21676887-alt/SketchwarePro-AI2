@@ -2072,17 +2072,17 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 			undo();
 		} else if (itemId == R.id.menu_logic_showsource) {
 			new MaterialAlertDialogBuilder(this)
-			.setTitle("Source Code")
+			.setTitle(R.string.title_source_code)
 			.setItems(new CharSequence[]{
-				"View Source Code",
-				"Code to Blocks",
-				"Generate with AI"
+				getString(R.string.option_view_source_code),
+				getString(R.string.option_code_to_blocks),
+				getString(R.string.option_generate_with_ai)
 			}, (dialog, which) -> {
 				if (which == 0)      showSourceCode();
 				else if (which == 1) showCodeToBlocksDialog();
 				else                  showAiCodePromptDialog();
 			})
-			.setNegativeButton("Cancel", null)
+			.setNegativeButton(R.string.btn_cancel, null)
 			.show();
 		}
 		
@@ -2827,7 +2827,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	/**
 * يعرض حوار إدخال حيث يكتب المستخدم وصف ما يريد توليده، ثم يبدأ التوليد.
 */	
-	private void showAiCodePromptDialog() {
+		private void showAiCodePromptDialog() {
 		int dp24 = (int) (24 * getResources().getDisplayMetrics().density);
 		int dp16 = (int) (16 * getResources().getDisplayMetrics().density);
 		int dp8 = (int) (8 * getResources().getDisplayMetrics().density);
@@ -2837,14 +2837,14 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		root.setPadding(dp24, dp24, dp24, dp8);
 		
 		TextView title = new TextView(this);
-		title.setText("Generate with AI");
+		title.setText(R.string.option_generate_with_ai);
 		title.setTextSize(20);
 		title.setTypeface(null, android.graphics.Typeface.BOLD);
 		title.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurface));
 		root.addView(title);
 		
 		TextView subtitle = new TextView(this);
-		subtitle.setText("Describe what this \"" + eventName + "\" event should do. AI will write the logic and convert it to blocks.");
+		subtitle.setText(getString(R.string.ai_code_subtitle_format, eventName));
 		subtitle.setTextSize(14);
 		subtitle.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant));
 		LinearLayout.LayoutParams subParams = new LinearLayout.LayoutParams(-1, -2);
@@ -2860,7 +2860,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		card.setCardBackgroundColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorSurfaceVariant));
 		
 		EditText editText = new EditText(this);
-		editText.setHint("e.g. show a toast saying Hello when this runs");
+		editText.setHint(R.string.ai_code_hint);
 		editText.setBackground(null);
 		editText.setPadding(dp16, dp16, dp16, dp16);
 		editText.setInputType(android.text.InputType.TYPE_CLASS_TEXT
@@ -2877,11 +2877,11 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		
 		new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
 		.setView(root)
-		.setNegativeButton("Cancel", null)
-		.setPositiveButton("Generate", (dialog, which) -> {
+		.setNegativeButton(R.string.btn_cancel, null)
+		.setPositiveButton(R.string.btn_generate, (dialog, which) -> {
 			String userIntent = editText.getText() == null ? "" : editText.getText().toString().trim();
 			if (userIntent.isEmpty()) {
-				pro.sketchware.utility.SketchwareUtil.toastError("Describe what this event should do first.");
+				pro.sketchware.utility.SketchwareUtil.toastError(getString(R.string.ai_toast_enter_description));
 				return;
 			}
 			generateCodeWithAi(userIntent);
@@ -2896,7 +2896,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 	
 	public void generateCodeWithAi(String userIntent) {
 		if (userIntent == null || userIntent.trim().isEmpty()) {
-			Toast.makeText(this, "ادخل وصفًا لتوليد الكود.", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, getString(R.string.ai_toast_enter_description_alt), Toast.LENGTH_SHORT).show();
 			return;
 		}
 		
@@ -2909,7 +2909,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		
 		// بناء Material dialog مع ProgressBar (مثال: استخدم layout ai_progress_dialog.xml كما اقترحت سابقاً)
 		MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(this);
-		dialogBuilder.setTitle("Generating code");
+		dialogBuilder.setTitle(R.string.ai_dialog_generating);
 		View progressView = LayoutInflater.from(this).inflate(R.layout.ai_progress_dialog, null, false);
 		dialogBuilder.setView(progressView);
 		dialogBuilder.setCancelable(true);
@@ -2932,7 +2932,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 				try { progressDialog.dismiss(); } catch (Exception ignored) {}
 				String code = fullContent == null ? "" : fullContent;
 				if (code.trim().isEmpty()) {
-					Toast.makeText(LogicEditorActivity.this, "لم يُحصل على نتيجة من المزوّد.", Toast.LENGTH_SHORT).show();
+					Toast.makeText(LogicEditorActivity.this, getString(R.string.ai_toast_no_result), Toast.LENGTH_SHORT).show();
 					return;
 				}
 				runConversion(code, () -> BlocksConverter.convert(code));
@@ -2945,9 +2945,9 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 			public void onError(String message, Throwable t) {
 				try { progressDialog.dismiss(); } catch (Exception ignored) {}
 				if (t != null) {
-					Toast.makeText(LogicEditorActivity.this, "فشل توليد الكود: " + t.getMessage(), Toast.LENGTH_LONG).show();
+					Toast.makeText(LogicEditorActivity.this, getString(R.string.ai_toast_generation_failed, t.getMessage()), Toast.LENGTH_LONG).show();
 				} else {
-					Toast.makeText(LogicEditorActivity.this, "Request error: " + message, Toast.LENGTH_LONG).show();
+					Toast.makeText(LogicEditorActivity.this, getString(R.string.ai_toast_request_error, message), Toast.LENGTH_LONG).show();
 				}
 			}
 		});
@@ -3030,14 +3030,14 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		root.setPadding(dp24, dp24, dp24, dp8);
 		
 		TextView title = new TextView(this);
-		title.setText("Code to Blocks");
+		title.setText(R.string.code_to_blocks_title);
 		title.setTextSize(20);
 		title.setTypeface(null, android.graphics.Typeface.BOLD);
 		title.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurface));
 		root.addView(title);
 		
 		TextView subtitle = new TextView(this);
-		subtitle.setText("Paste your Java snippet below. Supported syntax (loops, variables, APIs) will become blocks. Unrecognized code is wrapped safely.");
+		subtitle.setText(R.string.code_to_blocks_subtitle);
 		subtitle.setTextSize(14);
 		subtitle.setTextColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant));
 		LinearLayout.LayoutParams subParams = new LinearLayout.LayoutParams(-1, -2);
@@ -3053,7 +3053,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		card.setCardBackgroundColor(pro.sketchware.utility.ThemeUtils.getColor(this, com.google.android.material.R.attr.colorSurfaceVariant));
 		
 		EditText editText = new EditText(this);
-		editText.setHint("public void myLogic() {\n    // Code here\n}");
+		editText.setHint(R.string.code_to_blocks_hint);
 		editText.setBackground(null); // Transparent background
 		editText.setPadding(dp16, dp16, dp16, dp16);
 		editText.setInputType(android.text.InputType.TYPE_CLASS_TEXT 
@@ -3072,12 +3072,12 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		
 		new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
 		.setView(root)
-		.setNegativeButton("Cancel", null)
-		.setPositiveButton("Convert", (dialog, which) -> {
+		.setNegativeButton(R.string.btn_cancel, null)
+		.setPositiveButton(R.string.btn_convert, (dialog, which) -> {
 			String code = editText.getText() == null ? "" : editText.getText().toString().trim();
 			
 			if (code.isEmpty()) {
-				pro.sketchware.utility.SketchwareUtil.toastError("Oops! You forgot to paste the code.");
+				pro.sketchware.utility.SketchwareUtil.toastError(getString(R.string.code_to_blocks_error_empty));
 				return;
 			} else {
 				runConversion(code, () -> BlocksConverter.convert(code));
@@ -3094,12 +3094,13 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		try {
 			result = converterCall.get();
 		} catch (Throwable t) {
-			pro.sketchware.utility.SketchwareUtil.toastError("Converter failed: " + t.getMessage());
+			pro.sketchware.utility.SketchwareUtil.toastError(getString(R.string.converter_error_failed, t.getMessage()));
 			return;
 		}
 		
 		if (result == null || result.error != null) {
-			pro.sketchware.utility.SketchwareUtil.toastError("Couldn't convert the code: " + (result == null ? "no result" : result.error));
+			String detail = result == null ? getString(R.string.converter_no_result) : result.error;
+			pro.sketchware.utility.SketchwareUtil.toastError(getString(R.string.converter_error_could_not_convert, detail));
 			return;
 		}
 		
@@ -3107,23 +3108,23 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		int rec      = result.recognizedCount;
 		int fallback = result.fallbackCount;
 		
-		String blockWord = total == 1 ? "block" : "blocks";
-		String msg = "Here's what we found:\n\n"
-		+ "✅  " + rec + " native " + (rec == 1 ? "block" : "blocks") + "\n"
-		+ "⚠️  " + fallback + " \"Add Source Directly\" " + (fallback == 1 ? "block" : "blocks") + "\n\n"
-		+ "Ready to add " + total + " " + blockWord + " to your project?";
+		String blockWord = getString(total == 1 ? R.string.word_block : R.string.word_blocks);
+		String recBlockWord = getString(rec == 1 ? R.string.word_block : R.string.word_blocks);
+		String fallbackBlockWord = getString(fallback == 1 ? R.string.word_block : R.string.word_blocks);
+
+		String msg = getString(R.string.conversion_summary_msg, rec, recBlockWord, fallback, fallbackBlockWord, total, blockWord);
 		
 		new MaterialAlertDialogBuilder(this)
-		.setTitle("Ready to Insert?")
+		.setTitle(R.string.conversion_dialog_title)
 		.setMessage(msg)
-		.setNegativeButton("Wait, go back", null)
-		.setPositiveButton("Yes, insert them", (d2, w2) -> insertConvertedBlocks(result.blocks))
+		.setNegativeButton(R.string.conversion_btn_go_back, null)
+		.setPositiveButton(R.string.conversion_btn_insert, (d2, w2) -> insertConvertedBlocks(result.blocks))
 		.show();
 	}
 	
 	private void insertConvertedBlocks(java.util.ArrayList<com.besome.sketch.beans.BlockBean> blocks) {
 		if (blocks == null || blocks.isEmpty()) {
-			pro.sketchware.utility.SketchwareUtil.toastError("No blocks to insert.");
+			pro.sketchware.utility.SketchwareUtil.toastError(getString(R.string.blocks_toast_no_blocks));
 			return;
 		}
 		int[] oLoc = new int[2];
@@ -3139,7 +3140,8 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 		
 		C();
 		
+		String insertedBlockWord = getString(inserted.size() != 1 ? R.string.word_blocks : R.string.word_block);
 		pro.sketchware.utility.SketchwareUtil.toast(
-		inserted.size() + " block" + (inserted.size() != 1 ? "s" : "") + " inserted.");
+		getString(R.string.blocks_toast_inserted, inserted.size(), insertedBlockWord));
 	}
 }
