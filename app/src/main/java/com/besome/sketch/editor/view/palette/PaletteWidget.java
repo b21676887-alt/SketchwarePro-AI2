@@ -54,6 +54,7 @@ import pro.sketchware.utility.TranslationFunction;
 public class PaletteWidget extends LinearLayout {
 
     public MaterialCardView cardView;
+    public MaterialCardView aicardView;
     private LinearLayout layoutContainer;
     private LinearLayout widgetsContainer;
     private TextView titleLayouts;
@@ -161,6 +162,7 @@ public class PaletteWidget extends LinearLayout {
         titleWidgets.setText(Helper.getResString(R.string.view_panel_title_widgets));
         scrollView = findViewById(R.id.scv);
         cardView = findViewById(R.id.cardView);
+        aicardView = findViewById(R.id.aicardView);
     }
 
     public void removeWidgets() {
