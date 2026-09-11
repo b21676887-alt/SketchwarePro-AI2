@@ -66,6 +66,7 @@ import pro.sketchware.R;
 import pro.sketchware.utility.ThemeUtils;
 import pro.sketchware.widgets.IconCustomWidget;
 import pro.sketchware.widgets.WidgetsCreatorManager;
+import android.content.Intent;
 import com.besome.sketch.design.DesignActivity;
 import pro.sketchware.utility.TranslationFunction;
 
@@ -579,7 +580,20 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
         minDist = ViewConfiguration.get(context).getScaledTouchSlop();
 
         paletteWidget.cardView.setOnClickListener(view -> widgetsCreatorManager.showWidgetsCreatorDialog(-1));
-        paletteWidget.aicardView.setOnClickListener(view -> com.besome.sketch.design.DesignActivity.launchAiGenerateLayout());
+        
+        paletteWidget.aicardView.setOnClickListener(v -> {
+            Context ctx = getContext();
+            if (ctx instanceof com.besome.sketch.design.DesignActivity) {
+                // إذا كانت ViewEditor جزءًا من DesignActivity، نستخدم المثيل مباشرة
+                ((com.besome.sketch.design.DesignActivity) ctx).launchAiGenerateLayout();
+            } else {
+                // احتياطي: نفتح الـ Activity جديدًا (نضيف FLAG لأن السياق قد يكون ApplicationContext)
+                Intent intent = new Intent(ctx, com.besome.sketch.design.DesignActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                ctx.startActivity(intent);
+            }
+        });
+        
 
         colorSurfaceContainerHighest = ThemeUtils.getColor(deleteView, R.attr.colorSurfaceContainerHighest);
         colorCoolGreenContainer = ThemeUtils.getColor(deleteView, R.attr.colorCoolGreenContainer);
