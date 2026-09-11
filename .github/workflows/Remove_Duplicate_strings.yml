@@ -1,3 +1,24 @@
+name: Remove Duplicate Strings Keys
+
+on:
+  push:
+    branches:
+      - '**' # يعمل عند الرفع على أي فرع
+    paths:
+      - '**/strings.xml' # يعمل عند وجود تغييرات في ملفات strings.xml
+  workflow_dispatch: # يتيح التشغيل اليدوي من واجهة GitHub
+
+jobs:
+  clean-duplicates:
+    name: Clean Duplicate Keys
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
       - name: Remove Duplicate Keys from strings.xml
         run: |
           # البحث عن ملف strings.xml
@@ -38,3 +59,12 @@
 
           else:
             echo "Warning: strings.xml file not found."
+          fi
+
+      - name: Commit and Push Cleaned Files
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add .
+          git commit -m "chore: Remove duplicate keys from strings.xml [skip ci]" || echo "No changes to commit"
+          git push
