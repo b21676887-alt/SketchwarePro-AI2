@@ -543,7 +543,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             new Thread(() -> {
                 FileUtil.deleteFile(q.projectMyscPath);
                 updateBottomMenu();
-                runOnUiThread(() -> SketchwareUtil.toast(Helper.getResString(R.string.design_toast_clean_temp_done));
+                runOnUiThread(() -> SketchwareUtil.toast("Done cleaning temporary files!"));
             }).start();
             return true;
         });
