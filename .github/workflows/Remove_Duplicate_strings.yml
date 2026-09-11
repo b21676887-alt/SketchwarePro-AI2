@@ -27,36 +27,36 @@ jobs:
           if [ -n "$STRINGS_FILE" ]; then
             echo "Processing duplicate keys in $STRINGS_FILE..."
             
-            python3 - <<EOF
-          import xml.etree.ElementTree as ET
+            python3 - "$STRINGS_FILE" << 'EOF'
+import sys
+import xml.etree.ElementTree as ET
 
-          file_path = "$STRINGS_FILE"
-          
-          # قراءة وحفظ البنية الهيكلية للملف
-          tree = ET.parse(file_path)
-          root = tree.getroot()
+file_path = sys.argv[1]
 
-          seen_names = set()
-          duplicates_count = 0
+# قراءة وحفظ البنية الهيكلية للملف
+tree = ET.parse(file_path)
+root = tree.getroot()
 
-          # التكرار على العناصر بحذر وحذف المكرر
-          for elem in list(root):
-              if elem.tag == 'string':
-                  name = elem.get('name')
-                  if name in seen_names:
-                      root.remove(elem)
-                      duplicates_count += 1
-                  else:
-                      seen_names.add(name)
+seen_names = set()
+duplicates_count = 0
 
-          if duplicates_count > 0:
-              # إعادة كتابة الملف بدون المفاتيح المكررة
-              tree.write(file_path, encoding='utf-8', xml_declaration=True)
-              print(f"Successfully removed {duplicates_count} duplicate key(s).")
-          else:
-              print("No duplicate keys found.")
-          EOF
+# التكرار على العناصر بحذر وحذف المكرر
+for elem in list(root):
+    if elem.tag == 'string':
+        name = elem.get('name')
+        if name in seen_names:
+            root.remove(elem)
+            duplicates_count += 1
+        else:
+            seen_names.add(name)
 
+if duplicates_count > 0:
+    # إعادة كتابة الملف بدون المفاتيح المكررة
+    tree.write(file_path, encoding='utf-8', xml_declaration=True)
+    print(f"Successfully removed {duplicates_count} duplicate key(s).")
+else:
+    print("No duplicate keys found.")
+EOF
           else:
             echo "Warning: strings.xml file not found."
           fi
