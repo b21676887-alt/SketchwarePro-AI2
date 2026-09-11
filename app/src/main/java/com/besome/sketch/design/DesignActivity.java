@@ -705,7 +705,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
         return super.onOptionsItemSelected(item);
     }
 
-    public static void launchAiGenerateLayout() {
+    public void launchAiGenerateLayout() {
         try {
             View dialogView = getLayoutInflater().inflate(R.layout.dialog_ai_layout_generation, null);
             TextInputEditText promptInput = dialogView.findViewById(R.id.input_text);
