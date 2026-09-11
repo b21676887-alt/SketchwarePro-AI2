@@ -1858,8 +1858,8 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
 
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(activity, CHANNEL_ID)
                         .setSmallIcon(R.drawable.ic_mtrl_code)
-                        .setContentTitle(R.string.notification_building_project)
-                        .setContentText(R.string.notification_starting_build)
+                        .setContentTitle("Building project")
+                        .setContentText("Starting build…")
                         .setOngoing(true)
                         .setProgress(0, 0, true)
                         .addAction(R.drawable.ic_cancel_white_96dp, "Cancel build", getCancelPendingIntent());
@@ -1875,7 +1875,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(activity, CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_mtrl_code)
-                    .setContentTitle(R.string.notification_building_project)
+                    .setContentTitle("Building project")
                     .setContentText(progress)
                     .setOngoing(true)
                     .setProgress(0, 0, true)
