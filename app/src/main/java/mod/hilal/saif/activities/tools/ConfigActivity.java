@@ -117,7 +117,7 @@ public class ConfigActivity extends BaseAppCompatActivity {
                 // fall-through to shared error handler
             }
 
-            SketchwareUtil.toastError("Couldn't parse App Settings! Restoring defaults.");
+            SketchwareUtil.toastError(Helper.getResString(R.string.config_error_parse_settings));
             LogUtil.e("ConfigActivity", "Failed to parse App Settings.", toLog);
         }
         settings = new HashMap<>();
@@ -169,7 +169,7 @@ public class ConfigActivity extends BaseAppCompatActivity {
         var binding = PreferenceActivityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        binding.topAppBar.setTitle("App Settings");
+        binding.topAppBar.setTitle(R.string.settings_title);
         binding.topAppBar.setNavigationOnClickListener(Helper.getBackPressedClickListener(this));
         var fragment = new PreferenceFragment();
         fragment.setSnackbarView(binding.getRoot());
@@ -223,8 +223,8 @@ public class ConfigActivity extends BaseAppCompatActivity {
                 binding.chipGroupTypes.setVisibility(View.GONE);
                 AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
                         .setView(binding.getRoot())
-                        .setTitle("Backup directory")
-                        .setMessage("Directory inside /Internal storage/, e.g. .sketchware/backups")
+                        .setTitle(R.string.settings_backup_directory_title)
+                        .setMessage(R.string.settings_backup_directory_msg)
                         .setNegativeButton(R.string.common_word_cancel, null)
                         .setPositiveButton(R.string.common_word_save, null)
                         .create();
@@ -251,7 +251,7 @@ public class ConfigActivity extends BaseAppCompatActivity {
                 if (installWithRoot.isChecked()) {
                     Shell.getShell(shell -> {
                         if (!shell.isRoot()) {
-                            Snackbar.make(snackbarView, "Couldn't acquire root access", BaseTransientBottomBar.LENGTH_SHORT).show();
+                            Snackbar.make(snackbarView, Helper.getResString(R.string.config_error_no_root), BaseTransientBottomBar.LENGTH_SHORT).show();
                             installWithRoot.setChecked(false);
                         }
                     });
@@ -268,22 +268,13 @@ public class ConfigActivity extends BaseAppCompatActivity {
 
                 AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
                         .setView(binding.getRoot())
-                        .setTitle("Backup filename format")
-                        .setMessage("This defines how SWB backup files get named.\n" +
-                                "Available variables:\n" +
-                                " - $projectName - Project name\n" +
-                                " - $versionCode - App version code\n" +
-                                " - $versionName - App version name\n" +
-                                " - $pkgName - App package name\n" +
-                                " - $timeInMs - Time during backup in milliseconds\n" +
-                                "\n" +
-                                "Additionally, you can format your own time like this using Java's date formatter syntax:\n" +
-                                "$time(yyyy-MM-dd'T'HHmmss)\n")
+                        .setTitle(R.string.settings_backup_filename_title)
+                        .setMessage(R.string.config_backup_filename_msg)
                         .setNegativeButton(R.string.common_word_cancel, null)
                         .setPositiveButton(R.string.common_word_save, null)
                         .setNeutralButton(R.string.common_word_reset, (dialogInterface, which) -> {
                             getDataStore().putString(SETTING_BACKUP_FILENAME, null);
-                            Snackbar.make(snackbarView, "Reset to default complete.", BaseTransientBottomBar.LENGTH_SHORT).show();
+                            Snackbar.make(snackbarView, Helper.getResString(R.string.config_toast_reset_default), BaseTransientBottomBar.LENGTH_SHORT).show();
                         })
                         .create();
 
