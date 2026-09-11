@@ -3,10 +3,10 @@ name: Remove Duplicate Strings Keys
 on:
   push:
     branches:
-      - '**' # يعمل عند الرفع على أي فرع
+      - '**'
     paths:
-      - '**/strings.xml' # يعمل عند وجود تغييرات في ملفات strings.xml
-  workflow_dispatch: # يتيح التشغيل اليدوي من واجهة GitHub
+      - '**/strings.xml'
+  workflow_dispatch:
 
 jobs:
   clean-duplicates:
@@ -17,49 +17,49 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
 
       - name: Remove Duplicate Keys from strings.xml
+        shell: python
         run: |
+          import glob
+          import os
+          import xml.etree.ElementTree as ET
+
           # البحث عن ملف strings.xml
-          STRINGS_FILE=$(find . -name "strings.xml" | head -n 1)
+          files = glob.glob('**/strings.xml', recursive=True)
 
-          if [ -n "$STRINGS_FILE" ]; then
-            echo "Processing duplicate keys in $STRINGS_FILE..."
-            
-            python3 - "$STRINGS_FILE" << 'EOF'
-import sys
-import xml.etree.ElementTree as ET
+          if files:
+              file_path = files[0]
+              print(f"Processing duplicate keys in {file_path}...")
+              
+              tree = ET.parse(file_path)
+              root = tree.getroot()
 
-file_path = sys.argv[1]
+              seen_names = set()
+              duplicates_count = 0
 
-# قراءة وحفظ البنية الهيكلية للملف
-tree = ET.parse(file_path)
-root = tree.getroot()
+              for elem in list(root):
+                  if elem.tag == 'string':
+                      name = elem.get('name')
+                      if name in seen_names:
+                          root.remove(elem)
+                          duplicates_count += 1
+                      else:
+                          seen_names.add(name)
 
-seen_names = set()
-duplicates_count = 0
-
-# التكرار على العناصر بحذر وحذف المكرر
-for elem in list(root):
-    if elem.tag == 'string':
-        name = elem.get('name')
-        if name in seen_names:
-            root.remove(elem)
-            duplicates_count += 1
-        else:
-            seen_names.add(name)
-
-if duplicates_count > 0:
-    # إعادة كتابة الملف بدون المفاتيح المكررة
-    tree.write(file_path, encoding='utf-8', xml_declaration=True)
-    print(f"Successfully removed {duplicates_count} duplicate key(s).")
-else:
-    print("No duplicate keys found.")
-EOF
+              if duplicates_count > 0:
+                  tree.write(file_path, encoding='utf-8', xml_declaration=True)
+                  print(f"Successfully removed {duplicates_count} duplicate key(s).")
+              else:
+                  print("No duplicate keys found.")
           else:
-            echo "Warning: strings.xml file not found."
-          fi
+              print("Warning: strings.xml file not found.")
 
       - name: Commit and Push Cleaned Files
         run: |
