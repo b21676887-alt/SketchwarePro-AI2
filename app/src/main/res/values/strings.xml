@@ -4654,4 +4654,5 @@ Do you want to continue?</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_generate">Generate</string>
     <string name="btn_convert">Convert</string>
+    <string name="btn_convert">Convert</string>
 </resources>
