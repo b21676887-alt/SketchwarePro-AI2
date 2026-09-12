@@ -4611,13 +4611,13 @@ Do you want to continue?</string>
     <string name="global_search_noresultsfound">No results found</string>
     <string name="global_search_searching_project">Searching project...</string>
     
-    <!-- Source Code Dialog Options -->
+    
     <string name="title_source_code">Source Code</string>
     <string name="option_view_source_code">View Source Code</string>
     <string name="option_code_to_blocks">Code to Blocks</string>
     <string name="option_generate_with_ai">Generate with AI</string>
 
-    <!-- AI Generation Dialog & Process -->
+    
     <string name="ai_code_subtitle_format">Describe what this \"%1$s\" event should do. AI will write the logic and convert it to blocks.</string>
     <string name="ai_code_hint">e.g. show a toast saying Hello when this runs</string>
 
@@ -4628,7 +4628,7 @@ Do you want to continue?</string>
     <string name="ai_toast_request_error">Request error: %1$s</string>
     <string name="ai_dialog_generating">Generating code</string>
 
-    <!-- Conversion & Blocks Process -->
+    
     <string name="converter_error_failed">Converter failed: %1$s</string>
     <string name="converter_error_could_not_convert">Couldn\'t convert the code: %1$s</string>
     <string name="converter_no_result">no result</string>
@@ -4644,15 +4644,14 @@ Do you want to continue?</string>
     <string name="blocks_toast_no_blocks">No blocks to insert.</string>
     <string name="blocks_toast_inserted">%1$d %2$s inserted.</string>
 
-    <!-- Code To Blocks Dialog -->
+    
     <string name="code_to_blocks_title">Code to Blocks</string>
     <string name="code_to_blocks_subtitle">Paste your Java snippet below. Supported syntax (loops, variables, APIs) will become blocks. Unrecognized code is wrapped safely.</string>
     <string name="code_to_blocks_hint">public void myLogic() {\n    // Code here\n}</string>
     <string name="code_to_blocks_error_empty">Oops! You forgot to paste the code.</string>
 
-    <!-- Common UI Actions -->
+    
     <string name="btn_cancel">Cancel</string>
     <string name="btn_generate">Generate</string>
     <string name="btn_convert">Convert</string>
-    <string name="btn_convert">Convert</string>
-</resources>
+    </resources>
