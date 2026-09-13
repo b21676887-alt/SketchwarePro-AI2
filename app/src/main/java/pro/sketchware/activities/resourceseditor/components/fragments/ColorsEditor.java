@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 
 import com.besome.sketch.lib.ui.ColorPickerDialog;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import android.graphics.Color;
 
 import java.util.ArrayList;
 import java.util.HashMap;
