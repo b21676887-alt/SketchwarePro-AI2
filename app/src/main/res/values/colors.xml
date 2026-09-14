@@ -67,61 +67,61 @@
     <color name="monokia_pro_purple">#ffab9df2</color>
     <color name="monokia_pro_grey">#ff727072</color>
     <color name="colorBottomBarSW">#ff008dcd</color>
-    <color name="color_text_onSurface">#ff141c23</color>
-    <color name="color_text_onSurfaceVariant">#ff3d4852</color>
+    <color name="color_text_onSurface">#1A1C1E</color>
+    <color name="color_text_onSurfaceVariant">#41474D</color>
 
     <!--  input layout  -->
-    <color name="inputLayoutBackgroundColor">#ffe6eff8</color>
-    <color name="inputLayoutStrokeColor">#ffb1c0ce</color>
+    <color name="inputLayoutBackgroundColor">#BFFAFAFA</color>
+    <color name="inputLayoutStrokeColor">#D3D3D3</color>
 
     <!--  main layouts  -->
-    <color name="backgroundColor">#fff6f9ff</color>
-    <color name="backgroundOpenColor">#ffecf4fe</color>
-    <color name="dialogBackgroundColor">#ffe6eff8</color>
+    <color name="backgroundColor">#FFFFFF</color>
+    <color name="backgroundOpenColor">#F5F5F5</color>
+    <color name="dialogBackgroundColor">#FFFFFF</color>
 
     <!--  views  -->
-    <color name="cardStrokeColor">#ffb1c0ce</color>
+    <color name="cardStrokeColor">#D1D1D1</color>
 
-    <color name="view_property_background_color">#fff6f9ff</color>
-    <color name="view_property_tab_active">#ff006493</color>
-    <color name="view_property_tab_deactive">#20006493</color>
+    <color name="view_property_background_color">#ffffff</color>
+    <color name="view_property_tab_active">#ff0084c2</color>
+    <color name="view_property_tab_deactive">#30008dcd</color>
     <color name="view_property_tab_active_text">#ffffffff</color>
     <color name="view_property_tab_deactive_text">#ff000000</color>
-    <color name="view_property_grid_background">#20006493</color>
-    <color name="view_property_grid_see_all_background">#ff006493</color>
+    <color name="view_property_grid_background">#30008dcd</color>
+    <color name="view_property_grid_see_all_background">#ff008dcd</color>
     <color name="view_property_spinner_filter">#ff000000</color>
 
     <!-- Chat Design Colors -->
-    <color name="chat_background">#fff6f9ff</color>
-    <color name="kelivo_tool_surface">#ffe1e9f3</color>
-    <color name="chat_surface">#fff6f9ff</color>
-    <color name="chat_surface_soft">#ffe1e9f3</color>
-    <color name="chat_accent">#ff006493</color>
-    <color name="store_play_blue">#ff006493</color>
-    <color name="chat_accent_soft">#ffcae6ff</color>
-    <color name="kelivo_surface_soft">#ffe1e9f3</color>
-    <color name="kelivo_border_soft">#ffb1c0ce</color>
-    <color name="kelivo_user_bubble">#fff0f6ff</color>
-    <color name="kelivo_avatar_bg">#fff0f6ff</color>
-    <color name="kelivo_avatar_text">#ff006493</color>
-    <color name="kelivo_selected_row">#fff5f9ff</color>
-    <color name="kelivo_send_bg">#ff9a9aa0</color>
+    <color name="chat_background">#F8F9FA</color>
+    <color name="kelivo_tool_surface">#F3F0FA</color>
+    <color name="chat_surface">#FFFFFF</color>
+    <color name="chat_surface_soft">#F2F2F7</color>
+    <color name="chat_accent">#6B5CE7</color>
+    <color name="store_play_blue">#0B57D0</color>
+    <color name="chat_accent_soft">#EDE9FE</color>
+    <color name="kelivo_surface_soft">#F2F2F7</color>
+    <color name="kelivo_border_soft">#E5E5EA</color>
+    <color name="kelivo_user_bubble">#E8E4F8</color>
+    <color name="kelivo_avatar_bg">#E8E4F8</color>
+    <color name="kelivo_avatar_text">#5B4FCF</color>
+    <color name="kelivo_selected_row">#F0EDFA</color>
+    <color name="kelivo_send_bg">#8E8E93</color>
     <color name="chat_warning">#B7791F</color>
-    <color name="chat_code_background">#fff6f9ff</color>
+    <color name="chat_code_background">#F2EFE7</color>
     <color name="chat_success">#22C55E</color>
     <color name="chat_error">#EF4444</color>
-    <color name="chat_text_primary">#ff141c23</color>
-    <color name="chat_text_secondary">#ff3d4852</color>
-    <color name="chat_text_hint">#ff8e8e93</color>
-    <color name="chat_divider">#ffb1c0ce</color>
-    <color name="chat_border">#ffb1c0ce</color>
-    <color name="provider_status_on_bg">#7afbb7</color>
+    <color name="chat_text_primary">#1C1C1E</color>
+    <color name="chat_text_secondary">#8E8E93</color>
+    <color name="chat_text_hint">#AEAEB2</color>
+    <color name="chat_divider">#E5E5EA</color>
+    <color name="chat_border">#E5E5EA</color>
+    <color name="provider_status_on_bg">#DCF5E3</color>
     <color name="provider_status_on_text">#1F9D55</color>
-    <color name="provider_status_off_bg">#ffdf9e</color>
+    <color name="provider_status_off_bg">#FCEFD9</color>
     <color name="provider_status_off_text">#C77A1F</color>
     <color name="chat_diff_background">#00000000</color>
-    <color name="chat_diff_header">#fff6f9ff</color>
-    <color name="chat_diff_hunk">#ffe6eff8</color>
+    <color name="chat_diff_header">#F8FAFC</color>
+    <color name="chat_diff_hunk">#EAF3FF</color>
     <color name="chat_diff_added">#EAF8EF</color>
     <color name="chat_diff_removed">#FDECEC</color>
     <color name="chat_diff_line_text">#1F2937</color>

@@ -4,9 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginStart="14dp"
-    android:layout_marginTop="4dp"
+    android:layout_marginTop="2dp"
     android:layout_marginEnd="14dp"
-    android:layout_marginBottom="4dp"
+    android:layout_marginBottom="2dp"
     android:background="@drawable/bg_chat_thread_item"
     android:clickable="true"
     android:focusable="true"
@@ -43,18 +43,23 @@
                 android:contentDescription="@null"
                 android:scaleType="centerCrop"
                 android:src="@drawable/sketch_app_icon" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/shadow_gradient_bottom_top"
+                android:importantForAccessibility="no" />
 
             <TextView
                 android:id="@+id/tv_published"
                 android:layout_width="match_parent"
                 android:layout_height="18dp"
                 android:layout_alignParentBottom="true"
-                android:background="#66000000"
+                
                 android:ellipsize="end"
                 android:gravity="center"
                 android:maxLines="1"
                 android:textColor="@android:color/white"
-                android:textSize="10sp"
+                android:textSize="12sp"
                 tools:text="605" />
 
         </RelativeLayout>
